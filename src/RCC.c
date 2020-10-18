@@ -105,6 +105,8 @@ void RCC_reset_clock()
 	RCC->CIR = 0x009F0000U;
 }
 
+// TODO: Fix missing defines, add get_clock_frequency
+
 void RCC_init_clock()
 {
 	FLASH->ACR |= FLASH_ACR_LATENCY_1; // 2 wait states
