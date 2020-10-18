@@ -80,5 +80,6 @@ typedef enum
 #define APB2PERIPH_BASE       (PERIPH_BASE + 0x00010000U)
 #define AHBPERIPH_BASE        (PERIPH_BASE + 0x00020000U)
 
+#define WAIT(t) while(t) {asm("nop");}
 
 #endif /* __COMMON_H__ */
