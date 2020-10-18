@@ -1,6 +1,6 @@
 CC			= arm-none-eabi-gcc
 CFLAGS		= -Wall -march=armv7-m -mtune=cortex-m3 -mthumb -nostartfiles --specs=nano.specs
-INCLUDES	= -I inc/
+INCLUDES	= -I inc/ -I inc/core
 PROG_NAME	= synthlib
 
 SRC_DIR = src
