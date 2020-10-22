@@ -1,6 +1,6 @@
 #include "RCC.h"
 
-/* RCC definitions */
+/* Peripheral structure definitions */
 typedef struct
 {
 	__IO uint32_t CR;
@@ -29,9 +29,50 @@ typedef struct
 	__IO uint32_t WRPR;
 } FLASH_TypeDef;
 
-#define FLASH_R_BASE (AHBPERIPH_BASE + 0x00002000U) /*!< Flash registers base address */
-#define RCC_BASE	 (AHBPERIPH_BASE + 0x00001000U)
-#define RCC			 ((RCC_TypeDef *)RCC_BASE)
+/* peripheral definitions */
+
+#define FLASH_R_BASE   (AHBPERIPH_BASE + 0x00002000U) /*!< Flash registers base address */
+#define FLASHSIZE_BASE 0x1FFFF7E0U					  /*!< FLASH Size register base address */
+#define FLASH		   ((FLASH_TypeDef *)FLASH_R_BASE)
+#define UID_BASE	   0x1FFFF7E8U /*!< Unique device ID register base address */
+#define OB_BASE		   0x1FFFF800U /*!< Flash Option Bytes base address */
+#define RCC_BASE	   (AHBPERIPH_BASE + 0x00001000U)
+#define RCC			   ((RCC_TypeDef *)RCC_BASE)
+
+/* RCC configuration flags: */
+
+/* Multipler of 9 */
+#define PLL_MUL (0x001C0000)
+
+/* PLL Source from external crystal */
+#define PLL_SRC_PREDIV1 (0x00010000)
+
+/* ADC max frequency 14MHz, F_CPU is 72MHz, divs are 2,4,6,8, closest value below 14 is 12MHz=72/6 */
+#define ADC_DIV (0x00008000)
+
+/* APB1 max frequency 36MHz, half of F_CPU */
+#define APB1_DIV (0x00000100)
+
+/* system clock source */
+#define CLK_SRC_HSI (0x00000000)
+#define CLK_SRC_PLL (0x00000002)
+/* mask of the clock source selection bits */
+#define CLK_SRC_MSK (0x00000003)
+
+/* clock subsystem flags */
+/* HSI - internal high speed clock */
+#define CLK_HSI_ON	(0x00000001)
+#define CLK_HSI_RDY (0x00000002)
+
+/* HSE - external high speed clock, crystals */
+#define CLK_HSE_ON	(0x00010000)
+#define CLK_HSE_RDY (0x00020000)
+
+/* PLL - clock multipler */
+#define CLK_PLL_ON	(0x01000000)
+#define CLK_PLL_RDY (0x02000000)
+/* CSS - clock security system, when the HSE fails the chip wont be completly dead */
+#define CLK_CSS_ON (0x00080000)
 
 /* The enum RCC_Peripherals_t is seperated to 3 32 entry long parts, each for clock domain */
 #define CLOCK_DOMAIN_PERIPH_COUNT 32
@@ -105,26 +146,29 @@ void RCC_reset_clock()
 	RCC->CIR = 0x009F0000U;
 }
 
-// TODO: Fix missing defines, add get_clock_frequency
-
 void RCC_init_clock()
 {
-	FLASH->ACR |= FLASH_ACR_LATENCY_1; // 2 wait states
+	FLASH->ACR |= 2; // 1 wait state
 	// 8MHz * 9 = 72MHz, adc requeires f <= 14MHz, closest value is 6:72/6=12
-	RCC->CFGR = RCC_CFGR_PLLMULL9 | RCC_CFGR_ADCPRE_DIV6 | RCC_CFGR_PLLSRC;
+	RCC->CFGR = PLL_MUL | PLL_SRC_PREDIV1 | ADC_DIV | APB1_DIV;
 
 	// turn on HSE (crystal)
-	RCC->CR |= RCC_CR_HSEON;
-	WAIT((RCC->CR & RCC_CR_HSERDY) == 0)
+	RCC->CR |= CLK_HSE_ON;
+	WAIT((RCC->CR & CLK_HSE_RDY) == 0)
 
 	// turn on PLL
-	RCC->CR |= RCC_CR_PLLON;
-	WAIT((RCC->CR & RCC_CR_PLLRDY) == 0)
+	RCC->CR |= CLK_PLL_ON;
+	WAIT((RCC->CR & CLK_PLL_RDY) == 0)
 
 	// turn on CSS
-	RCC->CR |= RCC_CR_CSSON;
+	RCC->CR |= CLK_CSS_ON;
 
 	// Switch to PLL + HSE:
-	RCC->CFGR |= RCC_CFGR_SW_PLL;
-	WAIT((RCC->CFGR & RCC_CFGR_SWS_PLL) == 0)
+	RCC->CFGR |= CLK_SRC_PLL;
+	WAIT((RCC->CFGR & CLK_SRC_MSK) == CLK_SRC_HSI)
+}
+
+void RCC_reset_system()
+{
+	NVIC_SystemReset();
 }
