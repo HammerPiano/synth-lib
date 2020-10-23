@@ -143,11 +143,13 @@ bool static activate_input_pull(pGPIO_PIN_ARRAY_t pin_array, bool pull_up)
 	{
 		port_struct->ODR &= ~pin_mask;
 	}
+	return true;
 }
 
 bool static config_pins(const pGPIO_PIN_ARRAY_t pin_array)
 {
-	GPIO_TypeDef * port_struct = _get_port(pin_array->port);
+	bool		   return_value = true;
+	GPIO_TypeDef * port_struct	= _get_port(pin_array->port);
 	// each CRx is responsible for different pins in the port, CRL for first 8 pins, CRH for the others
 	uint8_t crl_max = pin_array->end_pin > GPIO_MAX_CRL ? GPIO_MAX_CRL : pin_array->end_pin;
 	uint8_t crh_min = pin_array->start_pin < GPIO_MIN_CRH ? GPIO_MIN_CRH : pin_array->start_pin;
@@ -159,17 +161,19 @@ bool static config_pins(const pGPIO_PIN_ARRAY_t pin_array)
 
 	if (pin_array->start_pin <= GPIO_MAX_CRL)
 	{
-		config_cr_register(&(port_struct->CRL), pin_array->start_pin, crl_max, pin_array->mode, pin_array->config);
+		return_value = config_cr_register(&(port_struct->CRL), pin_array->start_pin, crl_max, pin_array->mode, pin_array->config);
 	}
 
-	if (pin_array->end_pin > GPIO_MIN_CRL)
+	if (return_value == true && pin_array->end_pin > GPIO_MIN_CRL)
 	{
-		config_cr_register(&(port_struct->CRH), crh_min, crl_max, pin_array->mode, pin_array->config);
+		return_value = config_cr_register(&(port_struct->CRH), crh_min, crl_max, pin_array->mode, pin_array->config);
 	}
+	return return_value;
 }
 
 bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config)
 {
+	bool return_value = true;
 	// Validate parameters
 	if (pin_array == NULL)
 	{
@@ -187,22 +191,64 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
 	pin_array->port		   = port;
 	pin_array->num_of_pins = end_pin - start_pin;
 
-	config_pins(pin_array);
+	return_value = config_pins(pin_array);
 
-	if (mode == GPIO_MODE_INPUT && (config == GPIO_CONFIG_INPUT_PULL_DOWN || config == GPIO_CONFIG_INPUT_PULL_UP))
+	if (return_value == true && mode == GPIO_MODE_INPUT && (config == GPIO_CONFIG_INPUT_PULL_DOWN || config == GPIO_CONFIG_INPUT_PULL_UP))
 	{
-		activate_input_pull(pin_array, config == GPIO_CONFIG_INPUT_PULL_UP);
+		return_value = activate_input_pull(pin_array, config == GPIO_CONFIG_INPUT_PULL_UP);
 	}
-}
-
-void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask, bool state)
-{
-}
-
-void GPIO_array_write(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value)
-{
+	return return_value;
 }
 
 void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state)
 {
+	uint16_t pin_mask = 0;
+	if (pin_array == NULL)
+	{
+		return;
+	}
+	pin_mask = calculate_pin_mask(pin_array->start_pin, pin_array->end_pin);
+	GPIO_array_write_pins(pin_array, pin_mask, state);
+}
+
+void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask, bool state)
+{
+	GPIO_TypeDef * port_struct = NULL;
+	if (pin_array == NULL)
+	{
+		return;
+	}
+	port_struct = _get_port(pin_array->port);
+	if (port_struct == NULL)
+	{
+		return;
+	}
+
+	if (state == true)
+	{
+		port_struct->BSRR |= pin_mask;
+	}
+	else
+	{
+		port_struct->BRR |= pin_mask;
+	}
+}
+
+void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value)
+{
+	uint16_t	   pin_mask	   = 0;
+	GPIO_TypeDef * port_struct = NULL;
+	if (pin_array == NULL)
+	{
+		return;
+	}
+	port_struct = _get_port(pin_array->port);
+	if (port_struct == NULL)
+	{
+		return;
+	}
+
+	pin_mask = calculate_pin_mask(pin_array->start_pin, pin_array->end_pin);
+	port_struct->ODR &= ~pin_mask;
+	port_struct->ODR |= value;
 }

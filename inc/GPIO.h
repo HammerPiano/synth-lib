@@ -76,6 +76,16 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
 */
 
 /**
+ * @brief This function is the same as the function GPIO_array_write_pins, just setting for all of the pins
+ * 
+ * @param pin_array pin_array object
+ * @param state on/off for all pins
+ * 
+ * @remark this function uses the BSRR/BRR (atomic write)
+ */
+void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state);
+
+/**
  * @brief This function will set the given pins to the state
  * 
  * @param pin_array pin_array object
@@ -83,6 +93,7 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
  * @param state on/off for the pins
  * 
  * @remarks the function ignore any pins outside the bounds of the array
+ * @remark this function uses the BSRR/BRR (atomic write)
  */
 void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask, bool state);
 
@@ -91,18 +102,9 @@ void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask,
  * 
  * @param pin_array pin_array object
  * @param value value to write
- * 
- * @remarks the function will read only the first n bits, where n is the number of pins assigned to the array
- */
-void GPIO_array_write(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value);
 
-/**
- * @brief This function is the same as the function GPIO_array_write_pins, just setting for all of the pins
- * 
- * @param pin_array pin_array object
- * @param state on/off for all pins
  */
-void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state);
+void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value);
 
 /*
  ? Input functions
