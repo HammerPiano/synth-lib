@@ -23,7 +23,7 @@ MEMORY
 	RAM (rxw)		: org = 0x20000000, len = 20K
 	/*FLASH (rx)		: org = 0x08000000, len = 60K
 	BOOT  (rx)		: org = 0x0800F000, len = 4K*/
-	FLASH (rx)		: org = 0x80000000, len = 64K
+	FLASH (rx)		: org = 0x08000000, len = 64K
 
 }
 
