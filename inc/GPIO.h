@@ -55,7 +55,15 @@ typedef enum
 	GPIO_CONFIG_OUTPUT_OPEN_DRAIN_ALT,
 } GPIO_CONFIG_t;
 
-typedef struct _GPIO_PIN_ARRAY GPIO_PIN_ARRAY_t, *pGPIO_PIN_ARRAY_t;
+typedef struct _GPIO_PIN_ARRAY
+{
+	uint32_t start_pin : 4;
+	uint32_t end_pin : 4;
+	uint32_t mode : 4;
+	uint32_t config : 4;
+	uint32_t port : 4;
+	uint32_t num_of_pins : 4;
+} GPIO_PIN_ARRAY_t, *pGPIO_PIN_ARRAY_t;
 
 /**
  * @brief This function inits a range of gpio pins in the give port

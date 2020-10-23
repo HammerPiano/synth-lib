@@ -1,15 +1,5 @@
 #include "GPIO.h"
-
-struct _GPIO_PIN_ARRAY
-{
-	uint32_t start_pin : 4;
-	uint32_t end_pin : 4;
-	uint32_t mode : 4;
-	uint32_t config : 4;
-	uint32_t port : 4;
-	uint32_t num_of_pins : 4;
-};
-
+#include "RCC.h"
 typedef struct
 {
 	__IO uint32_t CRL;
@@ -41,6 +31,33 @@ typedef struct
 */
 
 /**
+ * @brief This function turns on the clock for the GPIO port
+ *
+ * @param port
+ */
+void static activate_clock(GPIO_PORT_t port)
+{
+	RCC_Peripherals_t periph = 0;
+	if (port == GPIO_PORT_A)
+	{
+		periph = RCC_GPIOA;
+	}
+	else if (port == GPIO_PORT_B)
+	{
+		periph = RCC_GPIOB;
+	}
+	else if (port == GPIO_PORT_C)
+	{
+		periph = RCC_GPIOC;
+	}
+	else
+	{
+		return;
+	}
+	RCC_peripheral_set_clock(periph, true);
+}
+
+/**
  * @brief This function will return the port structure for the port
  *
  * @param portport num
@@ -69,7 +86,7 @@ uint16_t static calculate_pin_mask(uint8_t start_pin, uint8_t end_pin)
 	we want to generate a value, with pin_count 1's
 	to do it, do pow(2, pin_count) and subtract 1
 	*/
-	uint8_t pin_count = end_pin - start_pin;
+	uint8_t pin_count = end_pin - start_pin + 1;
 	return ((1 << pin_count) - 1) << start_pin;
 }
 
@@ -88,7 +105,7 @@ uint16_t static calculate_pin_mask(uint8_t start_pin, uint8_t end_pin)
  */
 bool static config_cr_register(periph_ptr_t gpio_cr, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config)
 {
-	uint16_t pin_init_value = mode | ((config & 2) << 2), pin_array_init_value = 0, pin_mask = 0;
+	uint32_t pin_init_value = mode | ((config & 2) << 2), pin_array_init_value = 0, pin_mask = 0;
 
 	if (gpio_cr == NULL)
 	{
@@ -103,7 +120,7 @@ bool static config_cr_register(periph_ptr_t gpio_cr, uint8_t start_pin, uint8_t 
 	end_pin &= GPIO_MAX_CR;
 	for (int i = start_pin; i <= end_pin; i++)
 	{
-		pin_array_init_value |= pin_init_value << i;
+		pin_array_init_value |= pin_init_value << (4 * i);
 	}
 	pin_mask = calculate_pin_mask(start_pin, end_pin);
 	// set relevant bits to their values
@@ -166,7 +183,7 @@ bool static config_pins(const pGPIO_PIN_ARRAY_t pin_array)
 
 	if (return_value == true && pin_array->end_pin > GPIO_MIN_CRL)
 	{
-		return_value = config_cr_register(&(port_struct->CRH), crh_min, crl_max, pin_array->mode, pin_array->config);
+		return_value = config_cr_register(&(port_struct->CRH), crh_min, pin_array->end_pin, pin_array->mode, pin_array->config);
 	}
 	return return_value;
 }
@@ -189,8 +206,8 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
 	pin_array->mode		   = mode;
 	pin_array->config	   = config;
 	pin_array->port		   = port;
-	pin_array->num_of_pins = end_pin - start_pin;
-
+	pin_array->num_of_pins = end_pin - start_pin + 1;
+	activate_clock(port);
 	return_value = config_pins(pin_array);
 
 	if (return_value == true && mode == GPIO_MODE_INPUT && (config == GPIO_CONFIG_INPUT_PULL_DOWN || config == GPIO_CONFIG_INPUT_PULL_UP))
@@ -202,7 +219,7 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
 
 void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state)
 {
-	uint16_t pin_mask = 0;
+	uint32_t pin_mask = 0;
 	if (pin_array == NULL)
 	{
 		return;
