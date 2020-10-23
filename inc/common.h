@@ -63,6 +63,8 @@ typedef enum
 #include <core/core_cm3.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+
  /*!< Interrupt Number Definition */
 
 

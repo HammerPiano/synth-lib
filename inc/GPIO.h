@@ -21,6 +21,10 @@
 #define GPIO_PIN_MASK_15 (0x7fff)
 #define GPIO_PIN_MASK_16 (0xffff)
 
+/* range - including */
+#define GPIO_MAX_PIN (15)
+#define GPIO_MIN_PIN (0)
+
 typedef enum
 {
 	GPIO_PORT_A,
@@ -62,8 +66,8 @@ typedef struct _GPIO_PIN_ARRAY GPIO_PIN_ARRAY_t, *pGPIO_PIN_ARRAY_t;
  * @param end_pin last pin in group (included)
  * @param mode input/output
  * @param config specific configuration
- * @return true 
- * @return false 
+ * @return true config successfull
+ * @return false config failed
  */
 bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config);
 
