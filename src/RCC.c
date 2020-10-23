@@ -85,7 +85,7 @@ typedef struct
 */
 void RCC_peripheral_set_clock(RCC_Peripherals_t periph, bool enable)
 {
-	uint32_t * clock_ptr = NULL;
+	periph_ptr_t clock_ptr = NULL;
 	if (periph < APB1_INDEX)
 	{
 		clock_ptr = &(RCC->AHBENR);
@@ -104,7 +104,7 @@ void RCC_peripheral_set_clock(RCC_Peripherals_t periph, bool enable)
 
 void RCC_peripheral_reset(RCC_Peripherals_t periph)
 {
-	uint32_t * reset_ptr = NULL;
+	periph_ptr_t reset_ptr = NULL;
 	if (periph < APB1_INDEX)
 	{
 		return; /* AHB Doesn't support peripheral reset */

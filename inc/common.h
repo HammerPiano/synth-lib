@@ -62,6 +62,7 @@ typedef enum
 } IRQn_Type;
 #include <core/core_cm3.h>
 #include <stdbool.h>
+#include <stdint.h>
  /*!< Interrupt Number Definition */
 
 
@@ -81,5 +82,7 @@ typedef enum
 #define AHBPERIPH_BASE        (PERIPH_BASE + 0x00020000U)
 
 #define WAIT(t) while(t) {asm("nop");}
+
+typedef __IO uint32_t * periph_ptr_t;
 
 #endif /* __COMMON_H__ */
