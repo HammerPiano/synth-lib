@@ -53,11 +53,14 @@ typedef struct
 /* APB1 max frequency 36MHz, half of F_CPU */
 #define APB1_DIV (0x00000100)
 
-/* system clock source */
-#define CLK_SRC_HSI (0x00000000)
-#define CLK_SRC_PLL (0x00000002)
-/* mask of the clock source selection bits */
-#define CLK_SRC_MSK (0x00000003)
+/* system clock select source */
+#define CLK_SRC_SELECT_HSI (0x00000000)
+#define CLK_SRC_SELECT_PLL (0x00000002)
+#define CLK_SRC_SELECT_MSK (0x00000003)
+/* actual system clock source */
+#define CLK_SRC_CURRENT_HSI (0x00000000)
+#define CLK_SRC_CURRENT_PLL (0x00000008)
+#define CLK_SRC_CURRENT_MSK (0x0000000C)
 
 /* clock subsystem flags */
 /* HSI - internal high speed clock */
@@ -163,9 +166,18 @@ void RCC_init_clock()
 	// turn on CSS
 	RCC->CR |= CLK_CSS_ON;
 
+	// enable clock for HSE pins
+	RCC_peripheral_set_clock(RCC_GPIOC, true);
+
 	// Switch to PLL + HSE:
-	RCC->CFGR |= CLK_SRC_PLL;
-	WAIT((RCC->CFGR & CLK_SRC_MSK) == CLK_SRC_HSI)
+	RCC->CFGR |= CLK_SRC_SELECT_PLL;
+	while (1)
+	{
+		if ((RCC->CFGR & CLK_SRC_CURRENT_MSK) == CLK_SRC_CURRENT_PLL)
+		{
+			break;
+		}
+	}
 }
 
 void RCC_reset_system()

@@ -7,8 +7,9 @@ Purpose: Initialize the basic functionality of the chip, including the clock,
 usb debug msgs and watchdogs
 */
 
-//#include "stm32f103x6.h"
+#include "RCC.h"
 
-static void sys_clock_init() {}
-
-void chip_init() {}
+void chip_init()
+{
+	RCC_init_clock();
+}
