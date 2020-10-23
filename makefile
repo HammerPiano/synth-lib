@@ -1,5 +1,9 @@
 CC			= arm-none-eabi-gcc
-CFLAGS		= -Wall -march=armv7-m -mtune=cortex-m3 -mthumb -nostartfiles --specs=nano.specs
+OBJ_COPY	= arm-none-eabi-objcopy
+FLASH		= st-flash
+FLASH_SIZE 	= --flash=64k
+FLASH_OFFSET= 0x08000000
+CFLAGS		= -Wall -march=armv7-m -mthumb -nostartfiles --specs=nosys.specs -ffunction-sections -fdata-sections -masm-syntax-unified -mlittle-endian -g
 INCLUDES	= -I inc/ -I inc/core
 PROG_NAME	= synthlib
 
@@ -13,7 +17,16 @@ STARTUP_OBJ = $(OBJ_DIR)/startup.o
 SOURCES = $(wildcard $(SRC_DIR)/*.c)
 OBJECTS = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES)) $(STARTUP_OBJ)
 
-./bin/$(PROG_NAME): $(OBJECTS)
+all: ./bin/$(PROG_NAME)
+
+flash: 
+	$(FLASH) $(FLASH_SIZE) write ./bin/$(PROG_NAME) $(FLASH_OFFSET)
+
+
+./bin/$(PROG_NAME): ./bin/$(PROG_NAME).elf
+	$(OBJ_COPY) -O binary $^ $@
+
+./bin/$(PROG_NAME).elf: $(OBJECTS)
 	$(CC) -T linkerscript.ld $(CFLAGS) $^ -o $@ 
 
 $(STARTUP_OBJ): $(STARTUP_FILE)
