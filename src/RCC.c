@@ -102,7 +102,7 @@ void RCC_peripheral_set_clock(RCC_Peripherals_t periph, bool enable)
 		clock_ptr = &(RCC->APB2ENR);
 	}
 
-	*clock_ptr = enable << (periph % CLOCK_DOMAIN_PERIPH_COUNT);
+	*clock_ptr |= enable << (periph % CLOCK_DOMAIN_PERIPH_COUNT);
 }
 
 void RCC_peripheral_reset(RCC_Peripherals_t periph)
@@ -121,7 +121,7 @@ void RCC_peripheral_reset(RCC_Peripherals_t periph)
 		reset_ptr = &(RCC->APB2RSTR);
 	}
 
-	*reset_ptr = 1 << (periph % CLOCK_DOMAIN_PERIPH_COUNT);
+	*reset_ptr |= 1 << (periph % CLOCK_DOMAIN_PERIPH_COUNT);
 }
 
 /*
