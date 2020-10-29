@@ -29,7 +29,8 @@ typedef enum
 {
 	GPIO_PORT_A,
 	GPIO_PORT_B,
-	GPIO_PORT_C
+	GPIO_PORT_C,
+	GPIO_PORT_COUNT
 } GPIO_PORT_t;
 
 typedef enum
@@ -132,6 +133,8 @@ uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array);
  * @param pin_array pin_array object
  * @param pin_mask which pins to read
  * @return uint16_t read value
+ * 
+ * @remarks The value will be right shifted, so that the first pin (given in initializaion) will be bit 0
  */
 uint16_t GPIO_array_read_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask);
 
