@@ -1,5 +1,6 @@
 #include "GPIO.h"
 #include "RCC.h"
+#include "utils.h"
 typedef struct
 {
 	__IO uint32_t CRL;
@@ -80,16 +81,6 @@ static GPIO_TypeDef * _get_port(GPIO_PORT_t port)
 	return NULL;
 }
 
-uint16_t static calculate_pin_mask(uint8_t start_pin, uint8_t end_pin)
-{
-	/*
-	we want to generate a value, with pin_count 1's
-	to do it, do pow(2, pin_count) and subtract 1
-	*/
-	uint8_t pin_count = end_pin - start_pin + 1;
-	return ((1 << pin_count) - 1) << start_pin;
-}
-
 /**
  * @brief This function configs the C register from start_pin to end_pin in the gpio cr (config register)
  *
@@ -122,7 +113,7 @@ bool static config_cr_register(periph_ptr_t gpio_cr, uint8_t start_pin, uint8_t 
 	{
 		pin_array_init_value |= pin_init_value << (4 * i);
 	}
-	pin_mask = calculate_pin_mask(start_pin, end_pin);
+	pin_mask = utils_generate_mask(start_pin, end_pin);
 	// set relevant bits to their values
 	*gpio_cr &= ~pin_mask;
 	*gpio_cr |= pin_array_init_value;
@@ -150,7 +141,7 @@ bool static activate_input_pull(pGPIO_PIN_ARRAY_t pin_array, bool pull_up)
 	{
 		return false;
 	}
-	pin_mask = calculate_pin_mask(pin_array->start_pin, pin_array->end_pin);
+	pin_mask = utils_generate_mask(pin_array->start_pin, pin_array->end_pin);
 	// to activate PULL UP write 1 for each input pin in ODR, to activate PULL DOWN write 0
 	if (pull_up)
 	{
@@ -224,7 +215,7 @@ void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state)
 	{
 		return;
 	}
-	pin_mask = calculate_pin_mask(pin_array->start_pin, pin_array->end_pin);
+	pin_mask = utils_generate_mask(pin_array->start_pin, pin_array->end_pin);
 	GPIO_array_write_pins(pin_array, pin_mask, state);
 }
 
@@ -265,7 +256,7 @@ void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value)
 		return;
 	}
 
-	pin_mask = calculate_pin_mask(pin_array->start_pin, pin_array->end_pin);
+	pin_mask = utils_generate_mask(pin_array->start_pin, pin_array->end_pin);
 	port_struct->ODR &= ~pin_mask;
 	port_struct->ODR |= value;
 }
