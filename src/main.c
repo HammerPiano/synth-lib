@@ -43,10 +43,17 @@ void dash(pGPIO_PIN_ARRAY_t led)
 
 int main()
 {
-	GPIO_PIN_ARRAY_t led = { 0 };
-	GPIO_array_init(&led, GPIO_PORT_B, 13, 13, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
+	GPIO_PIN_ARRAY_t led	= { 0 };
+	GPIO_PIN_ARRAY_t button = { 0 };
+	GPIO_array_init(&led, GPIO_PORT_B, 9, 9, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
+	GPIO_array_init(&button, GPIO_PORT_A, 4, 4, GPIO_MODE_INPUT, GPIO_CONFIG_INPUT_PULL_UP);
 	while (1)
 	{
+		while (GPIO_array_read_all(&button) != 0)
+		{
+			asm("nop");
+			delay(1000);
+		}
 		dot(&led);
 		dash(&led);
 		letter_space(&led);
@@ -59,6 +66,5 @@ int main()
 		letter_space(&led);
 		dash(&led);
 		dash(&led);
-		delay(10 * DASH_LENGTH);
 	}
 }
