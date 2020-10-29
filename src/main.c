@@ -4,6 +4,9 @@
 #define DOT_LENGTH	 SPACE_LENGTH
 #define DASH_LENGTH	 (3 * DOT_LENGTH)
 
+#define LED_ON	(true)
+#define LED_OFF (false)
+
 void delay(uint32_t length)
 {
 	for (uint32_t i = 0; i < length; i++)
@@ -14,26 +17,26 @@ void delay(uint32_t length)
 
 void letter_space(pGPIO_PIN_ARRAY_t led)
 {
-	GPIO_array_write_all(led, true);
+	GPIO_array_write_all(led, LED_OFF);
 	delay(DASH_LENGTH);
 }
 
 void space(pGPIO_PIN_ARRAY_t led)
 {
-	GPIO_array_write_all(led, true);
+	GPIO_array_write_all(led, LED_OFF);
 	delay(SPACE_LENGTH);
 }
 
 void dot(pGPIO_PIN_ARRAY_t led)
 {
-	GPIO_array_write_all(led, false);
+	GPIO_array_write_all(led, LED_ON);
 	delay(DOT_LENGTH);
 	space(led);
 }
 
 void dash(pGPIO_PIN_ARRAY_t led)
 {
-	GPIO_array_write_all(led, false);
+	GPIO_array_write_all(led, LED_ON);
 	delay(DASH_LENGTH);
 	space(led);
 }
@@ -41,7 +44,7 @@ void dash(pGPIO_PIN_ARRAY_t led)
 int main()
 {
 	GPIO_PIN_ARRAY_t led = { 0 };
-	GPIO_array_init(&led, GPIO_PORT_C, 13, 13, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
+	GPIO_array_init(&led, GPIO_PORT_B, 13, 13, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
 	while (1)
 	{
 		dot(&led);
