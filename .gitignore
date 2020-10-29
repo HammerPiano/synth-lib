@@ -1,0 +1,15 @@
+# Directories
+obj/
+bin/
+.vscode/
+core/
+
+
+# file types
+*.code-workspace
+
+# files
+system_stm32f1xx.h
+stm32f103x6.h
+stm32f1xx.h
+.clang-format
