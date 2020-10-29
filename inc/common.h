@@ -60,7 +60,7 @@ typedef enum
 	RTC_Alarm_IRQn              = 41,     /*!< RTC Alarm through EXTI Line Interrupt                */
 	USBWakeUp_IRQn              = 42,     /*!< USB Device WakeUp from suspend through EXTI Line Interrupt */
 } IRQn_Type;
-#include <core/core_cm3.h>
+#include <core_cm3.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
