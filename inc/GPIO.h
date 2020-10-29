@@ -138,4 +138,10 @@ uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array);
  */
 uint16_t GPIO_array_read_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask);
 
+/**
+ * @brief This function is called on the startup of the chip
+ * 
+ */
+void GPIO_startup();
+
 #endif /* __GPIO_H__ */

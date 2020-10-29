@@ -45,6 +45,18 @@ static uint32_t generate_cr_mask(uint8_t start_pin, uint8_t end_pin)
 }
 
 /**
+ * @brief This function will reset all reserved pins, used mainly in startup due to the possibility of garbage values
+ *
+ */
+static void reset_reserved_pins()
+{
+	for (size_t i = 0; i < GPIO_PORT_COUNT; i++)
+	{
+		s_reserved_pins[i] = 0;
+	}
+}
+
+/**
  * @brief This function will check if all of the marked pins are available for reserving
  *
  * @param port which port to check
@@ -344,4 +356,9 @@ uint16_t GPIO_array_read_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_ma
 	}
 
 	return (port_struct->IDR & pin_mask) >> pin_array->start_pin;
+}
+
+void GPIO_startup()
+{
+	reset_reserved_pins();
 }
