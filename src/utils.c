@@ -11,7 +11,7 @@ uint32_t utils_generate_mask(uint8_t start_bit, uint8_t end_bit)
 	}
 	else
 	{
-		bitmask = (1 << bit_count) << start_bit;
+		bitmask = ((1 << bit_count) - 1) << start_bit;
 	}
 	return bitmask;
 }
