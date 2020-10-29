@@ -19,8 +19,10 @@ Since this chip has many peripherals, and the library doesn't require to use all
 [//]: # "unticked: &#9744;"
 [//]: # "ticked: &#9745;"
 
-1. &#9744; [RCC](docs/RCC.md)
-1. &#9744; [GPIO](docs/GPIO.md)
+Docs aren't implemented yet, all of the documentation is in the header files for now, when I get to V1.0 of the basic API there will be a proper docs
+
+1. &#9745; [RCC](docs/RCC.md)
+1. &#9745; [GPIO](docs/GPIO.md)
 1. &#9744; [UART](docs/UART.md)
 1. &#9744; [Timers](docs/Timers.md)
 1. &#9744; [ADC](docs/ADC.md)
@@ -29,22 +31,16 @@ Since this chip has many peripherals, and the library doesn't require to use all
 1. &#9744; [USB](docs/USB.md)
 1. &#9744; [Watchdog](docs/Watchdog.md)
 
-### Interface API
+# Versioning planning:
 
-The interface/controls provided by this library include simple inputs/outputs such as:
+Bolded versions are released
 
-#### Inputs
-
-1. &#9744; Buttons  - momnetary
-1. &#9744; Switches - toggle
-1. &#9744; Potentiometers - with Linear/Log/Antilog behavior
-1. &#9744; Button matrix
-1. &#9744; Rotary encoders
-1. &#9744; Touch "buttons"
-
-#### Outputs
-
-1. &#9744; LEDs - single/dual/RGB colors
-1. &#9744; Led matrixes
-1. &#9744; 7-segment leds
-1. &#9744; Serial RGB leds (WS2812)
+1. __V0.1 - GPIO, RCC, overall initial files for project__
+1. V0.2 - UART and DMA
+1. V0.3 - ADC
+1. V0.4 - TIMERS
+1. V0.5 - EXTI and NVIC, interrupts in general
+1. V0.6 - I&#178;C
+1. V0.7 - SPI
+1. V0.8 - USB
+1. V0.9 - Debug message, Watchdogs and stability checking
