@@ -56,8 +56,8 @@ Reset_Handler:
 CopyDataLoop:
 	/*	r1 = *r2; r2 += 4 
 		*r0 = r1; r3 += 4*/
-	ldr r1, [r2, #4]!
-	str r1, [r0, #4]!
+	ldr r1, [r0, #4]!
+	str r1, [r2, #4]!
 CopyDataCheck:
 	cmp	r2, r3
 	blt CopyDataLoop
