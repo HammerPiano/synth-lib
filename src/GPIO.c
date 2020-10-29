@@ -39,6 +39,13 @@ uint32_t s_reserved_pins[GPIO_PORT_COUNT] = { 0 };
  ? static functions
 */
 
+/**
+ * @brief This function will generate a mask for all the bits relevant to a pin
+ *
+ * @param start_pin pin to start at
+ * @param end_pin pin to end at
+ * @return uint32_t mask
+ */
 static uint32_t generate_cr_mask(uint8_t start_pin, uint8_t end_pin)
 {
 	return utils_generate_mask(start_pin * GPIO_BIT_PER_PIN, (end_pin + 1) * GPIO_BIT_PER_PIN);
