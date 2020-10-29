@@ -44,3 +44,15 @@ Bolded versions are released
 1. V0.7 - SPI
 1. V0.8 - USB
 1. V0.9 - Debug message, Watchdogs and stability checking
+
+# Compilation
+
+This project assumes that you have arm-none-eabi-XX utils installed, and st-flash installed aswell
+
+to make, run ```make```
+
+to flash, run ```make flash```
+
+Flash doens't compile, only flashes
+
+Compiled code is in releases, this is a raw binary file to write in the FLASH of the STM32F103C8T6
