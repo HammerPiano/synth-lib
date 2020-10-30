@@ -16,7 +16,8 @@ typedef enum
 	DMA_CH4,	
 	DMA_CH5,
 	DMA_CH6,
-	DMA_CH7
+	DMA_CH7,
+	DMA_CH_COUNT
 
 } DMA_CHANNELS_t;
 
@@ -37,7 +38,6 @@ typedef enum
 	DMA_CH2_TIM3_CH3	= DMA_CH2,
 
 	/* DMA Channel 3 Sources */
-	DMA_CH3,
 	DMA_CH3_SPI1_TX		= DMA_CH3,
 	DMA_CH3_USART3_RX	= DMA_CH3,
 	DMA_CH3_TIM1_CH2	= DMA_CH3,
@@ -92,6 +92,14 @@ typedef enum
 
 typedef enum
 {
+	DMA_FLAG_FINISHED = 1,
+	DMA_FLAG_HALF = 2,
+	DMA_FLAG_ERROR = 4,
+	DMA_FLAG_ALL = 7
+}DMA_FLAG_t;
+
+typedef enum
+{
 	DMA_ACCESS_8BIT,
 	DMA_ACCESS_16BIT,
 	DMA_ACCESS_32BIT	
@@ -108,46 +116,62 @@ typedef struct
 /**
  * @brief This function will init the DMA channel
  * 
- * @param dma_channel which channel - can be specified as a channel, or which peripheral to trigger it
+ * @param dma_channel_number which channel - can be specified as a channel, or which peripheral to trigger it
  * @param peripheral peripheral address
  * @param memory flash/ram address to read/write - flash is readonly!!!
- * @param priotiry which priority this gets - also lower channel number, high priority
+ * @param priority which priority this gets - also lower channel number, high priority
  * @param direction from or to peripheral
  * @param interrupt_mask which interrupts to generate for the channel
  * @return true init successfull
  * @return false init not successfull
  */
-bool DMA_init_channel(DMA_CHANNELS_t dma_channel, const DMA_address_t * peripheral, const DMA_address_t * memory, DMA_CH_PRIORITY_t priotiry, DMA_DIRECTION direction, uint8_t interrupt_mask);
+bool DMA_init_channel(DMA_CHANNELS_t dma_channel_number, const DMA_address_t * peripheral, const DMA_address_t * memory, uint32_t priority, uint32_t direction, uint32_t interrupt_mask);
 
 /**
  * @brief This function reset the configuration for the given channel to the deafult ones
  * 
- * @param dma_channel which channel to reset
+ * @param dma_channel_number which channel to reset
  * @return true reset successfull
  * @return false rest not successfull
  */
-bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel);
+bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel_number);
 
 /**
  * @brief This function will start transphering data
  * 
- * @param dma_channel which channel to start
+ * @param dma_channel_number which channel to start
  * @param data_count how many bytes to transpher
  * @param blocking if this function should wait until transphere is complete or not
  * @return true transphere started successfully
  * @return false transphere not started successfully
  */
-bool DMA_start_channel(DMA_CHANNELS_t dma_channel, uint16_t data_count, bool blocking);
+bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, bool blocking);
 
 /**
- * @brief This function will check if the transpher complete. It is not blocking
+ * @brief This function will get the desired flag for the given channel
  * 
- * @param dma_channel which channel to check
- * @return true transphere complete
- * @return false transphere on-going
+ * @param dma_channel_number channel
+ * @param flag flag to select
+ * @return true flag is on
+ * @return false flag is off
  * 
- * @remarks the function can be used for simulating multitasking
+ * @remarks to get if the channel is still tranfering, provide DMA_FLAG_FINISHED and check while it is zero
  */
-bool DMA_channel_is_finished(DMA_CHANNELS_t dma_channel);
+bool DMA_channel_get_flag(DMA_CHANNELS_t dma_channel_number, DMA_FLAG_t flag);
+
+/**
+ * @brief This function will clear all flags for the given channel
+ * 
+ * @param dma_channel_number channel to clear
+ * @return true clear successfull
+ * @return false clear failed
+ */
+bool DMA_channel_clear_flags(DMA_CHANNELS_t dma_channel_number);
+
+/**
+ * @brief This function is called on startup of the chip
+ * 
+ */
+void DMA_startup();
 
 #endif /*__DMA_H__*/
