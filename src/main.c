@@ -1,3 +1,4 @@
+#include "DMA.h"
 #include "GPIO.h"
 
 #define SPACE_LENGTH (720000)
@@ -24,7 +25,7 @@ const uint16_t LED_7SEG_VALUES[] = { 0x800, 0xf20, 0x480, 0x600, 0x320, 0x240, 0
 int main()
 {
 
-	uint8_t			 i		= 0;
+	/*uint8_t			 i		= 0;
 	GPIO_PIN_ARRAY_t led	= { 0 };
 	GPIO_PIN_ARRAY_t button = { 0 };
 	GPIO_array_init(&button, GPIO_PORT_B, 9, 9, GPIO_MODE_INPUT, GPIO_CONFIG_INPUT_PULL_UP);
@@ -48,5 +49,8 @@ int main()
 		{
 			delay(1000);
 		}
-	}
+	}*/
+	DMA_address_t periph = { .address = 0x40010800, .access_size = DMA_ACCESS_32BIT, .increament_address = false };
+	DMA_address_t memory = { .address = 0x200000F0, .access_size = DMA_ACCESS_32BIT, .increament_address = false };
+	DMA_init_channel(DMA_CH1, &periph, &memory, DMA_CH_PRIORITY_HIGH, DMA_DIRECTION_MEM_TO_PERIPH, 0);
 }
