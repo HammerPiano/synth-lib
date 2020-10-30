@@ -219,7 +219,7 @@ bool static activate_input_pull(pGPIO_PIN_ARRAY_t pin_array, bool pull_up)
 	return true;
 }
 
-bool static config_pins(const pGPIO_PIN_ARRAY_t pin_array)
+bool static config_pins(const GPIO_PIN_ARRAY_t * pin_array)
 {
 	bool		   return_value = true;
 	GPIO_TypeDef * port_struct	= get_port(pin_array->port);
@@ -283,7 +283,7 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
  * OUTPUT functions
  */
 
-void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state)
+void GPIO_array_write_all(const GPIO_PIN_ARRAY_t * pin_array, bool state)
 {
 	uint32_t pin_mask = 0;
 	if (pin_array == NULL)
@@ -294,7 +294,7 @@ void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state)
 	GPIO_array_write_pins(pin_array, pin_mask, state);
 }
 
-void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask, bool state)
+void GPIO_array_write_pins(const GPIO_PIN_ARRAY_t * pin_array, uint16_t pin_mask, bool state)
 {
 	GPIO_TypeDef * port_struct = NULL;
 	if (pin_array == NULL)
@@ -317,7 +317,7 @@ void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask,
 	}
 }
 
-void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value)
+void GPIO_array_write_value(const GPIO_PIN_ARRAY_t * pin_array, uint16_t value)
 {
 	uint16_t	   pin_mask	   = 0;
 	GPIO_TypeDef * port_struct = NULL;
@@ -340,7 +340,7 @@ void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value)
  * input functions
  */
 
-uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array)
+uint16_t GPIO_array_read_all(const GPIO_PIN_ARRAY_t * pin_array)
 {
 	if (pin_array == NULL)
 	{
@@ -349,7 +349,7 @@ uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array)
 	return GPIO_array_read_pins(pin_array, utils_generate_mask(pin_array->start_pin, pin_array->end_pin));
 }
 
-uint16_t GPIO_array_read_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask)
+uint16_t GPIO_array_read_pins(const GPIO_PIN_ARRAY_t * pin_array, uint16_t pin_mask)
 {
 	GPIO_TypeDef * port_struct = NULL;
 	if (pin_array == NULL)

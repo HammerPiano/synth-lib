@@ -92,7 +92,7 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
  * 
  * @remark this function uses the BSRR/BRR (atomic write)
  */
-void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state);
+void GPIO_array_write_all(const GPIO_PIN_ARRAY_t * pin_array, bool state);
 
 /**
  * @brief This function will set the given pins to the state
@@ -104,7 +104,7 @@ void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state);
  * @remarks the function ignore any pins outside the bounds of the array
  * @remark this function uses the BSRR/BRR (atomic write)
  */
-void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask, bool state);
+void GPIO_array_write_pins(const GPIO_PIN_ARRAY_t * pin_array, uint16_t pin_mask, bool state);
 
 /**
  * @brief This function will write the given value and override all pins
@@ -113,7 +113,7 @@ void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask,
  * @param value value to write
 
  */
-void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value);
+void GPIO_array_write_value(const GPIO_PIN_ARRAY_t * pin_array, uint16_t value);
 
 /*
  ? Input functions
@@ -125,7 +125,7 @@ void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value);
  * @param pin_array pin_array object
  * @return uint16_t read value
  */
-uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array);
+uint16_t GPIO_array_read_all(const GPIO_PIN_ARRAY_t * pin_array);
 
 /**
  * @brief This function will read some of the pins, given by the pin mask
@@ -136,7 +136,7 @@ uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array);
  * 
  * @remarks The value will be right shifted, so that the first pin (given in initializaion) will be bit 0
  */
-uint16_t GPIO_array_read_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask);
+uint16_t GPIO_array_read_pins(const GPIO_PIN_ARRAY_t * pin_array, uint16_t pin_mask);
 
 /**
  * @brief This function is called on the startup of the chip
