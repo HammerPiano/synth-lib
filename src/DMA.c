@@ -5,6 +5,7 @@
 #define DMA1_Channels_BASE (AHBPERIPH_BASE + 0x00000008U)
 #define DMA1_END		   (DMA1_BASE + 0x00000400U)
 
+#define DMA_CCR_SOFT_TRIG	(14)
 #define DMA_CCR_PRIORITY	(12)
 #define DMA_CCR_MEMORY_SIZE (10)
 #define DMA_CCR_PERIPH_SIZE (8)
@@ -131,8 +132,6 @@ bool DMA_init_channel(DMA_CHANNELS_t		dma_channel_number,
 	channel->CMAR = memory->address;
 	channel->CPAR = peripheral->address;
 
-	/* ready for enabling! */
-	channel->CCR |= 1 << DMA_CCR_ENABLE;
 	return true;
 }
 
@@ -171,7 +170,38 @@ bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, b
 			asm("nop");
 		}
 	}
+
+	/* ready for enabling! */
+	channel->CCR |= 1 << DMA_CCR_ENABLE;
 	return true;
+}
+
+bool DMA_stop_channel(DMA_CHANNELS_t dma_channel_number)
+{
+	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	if (channel == NULL) /* should never happen */
+	{
+		return false;
+	}
+	channel->CCR &= ~(1 << DMA_CCR_ENABLE);
+	return true;
+}
+
+bool DMA_set_software_trigger(DMA_CHANNELS_t dma_channel_number, bool software_trigger)
+{
+	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	if (channel == NULL) /* should never happen */
+	{
+		return false;
+	}
+	if (software_trigger)
+	{
+		channel->CCR |= 1 << DMA_CCR_SOFT_TRIG;
+	}
+	else
+	{
+		channel->CCR &= ~(1 << DMA_CCR_SOFT_TRIG);
+	}
 }
 
 bool DMA_channel_get_flag(DMA_CHANNELS_t dma_channel_number, DMA_FLAG_t flag)
@@ -181,7 +211,7 @@ bool DMA_channel_get_flag(DMA_CHANNELS_t dma_channel_number, DMA_FLAG_t flag)
 	{
 		return false;
 	}
-	flag_mask = flag << (dma_channel_number * DMA_ISR_FLAG_PER_CHANNEL);
+	flag_mask = flag << (dma_channel_number * DMA_ISR_FLAG_PER_CHANNEL + 1);
 	return s_DMA1->ISR & flag_mask;
 }
 
