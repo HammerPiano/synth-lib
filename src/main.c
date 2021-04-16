@@ -9,11 +9,15 @@
 #define LED_ON	(true)
 #define LED_OFF (false)
 
-void delay(uint32_t length)
+void delay(uint32_t ms)
 {
-	for (uint32_t i = 0; i < length; i++)
+	for (uint32_t i = 0; i < ms; i++)
 	{
-		asm("nop");
+		// F_CPU ~= 72MHz, delay in MS
+		for (size_t j = 0; j < 72000; j++)
+		{
+			asm("nop");
+		}
 	}
 }
 /*
@@ -26,23 +30,55 @@ const uint16_t LED_7SEG_VALUES[] = { 0x40, 0x79, 0x24, 0x30, 0x19, 0x12, 0x02, 0
 
 int main()
 {
-	uint16_t		 temp = 0, pins[] = { 8 };
-	GPIO_PIN_ARRAY_t led	= { 0 };
-	GPIO_PIN_ARRAY_t button = { 0 };
-	GPIO_array_init(&button, GPIO_PORT_B, 0, 0, GPIO_MODE_INPUT, GPIO_CONFIG_INPUT_ANALOG);
-	GPIO_array_init(&led, GPIO_PORT_A, 0, 6, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_OPEN_DRAIN);
-	ADC_init(pins, 1, &temp);
+	const uint8_t	 adc_pins = {8,9};// pins B0, B1 are inputs 8,9 of the ADC1
+	uint16_t 		 adc_data[2] = {0}; // X and Y values of potentiometer
+	GPIO_PIN_ARRAY_t x_bargraph	= { 0 };
+	GPIO_PIN_ARRAY_t y_bargraph	= { 0 };
+	GPIO_PIN_ARRAY_t err_led  = { 0 };
+	GPIO_array_init(&x_bargraph, GPIO_PORT_A, 0, 6, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
 
-	// Clear display
-	GPIO_array_write_value(&led, 0x7F);
+	GPIO_array_init(&err_led, GPIO_PORT_C, 13, 13, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_OPEN_DRAIN);
+	// ADC_init(adc_pins, sizeof(adc_pins) / sizeof(adc_pins[0]), adc_data);
+	if (GPIO_array_init(&y_bargraph, GPIO_PORT_B, 5, 11, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL) == GPIO_NO_ERR)
+	{
+		GPIO_array_write_value(&err_led, 1);
+	}
+	else
+	{
+		GPIO_array_write_value(&err_led, 1);
+	}
+
+	GPIO_array_write_all(&y_bargraph, 1);
+	GPIO_array_write_all(&x_bargraph, 1);
+	delay(100);
+	GPIO_array_write_all(&y_bargraph, 0);
+	GPIO_array_write_all(&x_bargraph, 0);
 	while (1)
 	{
+		for (size_t i = 0; i < 7; i++)
+		{
+			GPIO_array_write_value(&x_bargraph, 1 << i);
+			delay(10);
+		}
+		GPIO_array_write_all(&x_bargraph, 0);
+		for (size_t i = 0; i < 7; i++)
+		{
+			GPIO_array_write_value(&y_bargraph, 1 << i);
+			delay(10);
+		}
+		GPIO_array_write_all(&y_bargraph, 0);
+
+		/*
 		// each button press increase the index one time only
 		ADC_start(ADC_mode_single, 1);
-		delay(1000);
+		while(ADC_get_flag(ADC_end_of_conversion) == 0)
+		{
+			asm ("nop");
+		}
 		DMA_stop_channel(DMA_CH1_ADC1);
 		temp /= 256;
-		GPIO_array_write_value(&led, LED_7SEG_VALUES[temp]);
+		GPIO_array_write_value(&x_bargraph, LED_7SEG_VALUES[temp]);
 		// wait for release
+		*/
 	}
 }
