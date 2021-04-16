@@ -60,7 +60,12 @@ int main()
 	{
 		// each button press increase the index one time only
 		ADC_start(ADC_mode_single, 2);
-		delay(1);
+		// The EOF flag gets reset by the ADC everytime the DMA reads it, a kind of race condition
+		// Read the DMA finished flag instead
+		while (DMA_channel_get_flag(DMA_CH1_ADC1, DMA_FLAG_FINISHED) == 0)
+		{
+			asm ("nop");
+		}
 		DMA_stop_channel(DMA_CH1_ADC1);
 		
 		GPIO_array_write_value(&x_bargraph, 1 << (adc_data[0] / ADC_LED_RANGE));
