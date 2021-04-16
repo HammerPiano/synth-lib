@@ -56,6 +56,16 @@ typedef enum
 	GPIO_CONFIG_OUTPUT_OPEN_DRAIN_ALT,
 } GPIO_CONFIG_t;
 
+typedef enum
+{
+	GPIO_NO_ERR,
+	GPIO_NULL,
+	GPIO_PINS_RESERVED,
+	GPIO_INVALID_PIN,
+	GPIO_INVALID_PORT
+
+} GPIO_ERR_t;
+
 typedef struct _GPIO_PIN_ARRAY
 {
 	uint32_t start_pin : 4;
@@ -75,10 +85,9 @@ typedef struct _GPIO_PIN_ARRAY
  * @param end_pin last pin in group (included)
  * @param mode input/output
  * @param config specific configuration
- * @return true config successfull
- * @return false config failed
+ * @return GPIO_ERR_t errors if any
  */
-bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config);
+GPIO_ERR_t GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config);
 
 /*
  ? Output functions
@@ -92,7 +101,7 @@ bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t star
  * 
  * @remark this function uses the BSRR/BRR (atomic write)
  */
-void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state);
+void GPIO_array_write_all(const GPIO_PIN_ARRAY_t * pin_array, bool state);
 
 /**
  * @brief This function will set the given pins to the state
@@ -104,7 +113,7 @@ void GPIO_array_write_all(const pGPIO_PIN_ARRAY_t pin_array, bool state);
  * @remarks the function ignore any pins outside the bounds of the array
  * @remark this function uses the BSRR/BRR (atomic write)
  */
-void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask, bool state);
+void GPIO_array_write_pins(const GPIO_PIN_ARRAY_t * pin_array, uint16_t pin_mask, bool state);
 
 /**
  * @brief This function will write the given value and override all pins
@@ -113,7 +122,7 @@ void GPIO_array_write_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask,
  * @param value value to write
 
  */
-void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value);
+void GPIO_array_write_value(const GPIO_PIN_ARRAY_t * pin_array, uint16_t value);
 
 /*
  ? Input functions
@@ -125,7 +134,7 @@ void GPIO_array_write_value(const pGPIO_PIN_ARRAY_t pin_array, uint16_t value);
  * @param pin_array pin_array object
  * @return uint16_t read value
  */
-uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array);
+uint16_t GPIO_array_read_all(const GPIO_PIN_ARRAY_t * pin_array);
 
 /**
  * @brief This function will read some of the pins, given by the pin mask
@@ -136,7 +145,7 @@ uint16_t GPIO_array_read_all(const pGPIO_PIN_ARRAY_t pin_array);
  * 
  * @remarks The value will be right shifted, so that the first pin (given in initializaion) will be bit 0
  */
-uint16_t GPIO_array_read_pins(const pGPIO_PIN_ARRAY_t pin_array, uint16_t pin_mask);
+uint16_t GPIO_array_read_pins(const GPIO_PIN_ARRAY_t * pin_array, uint16_t pin_mask);
 
 /**
  * @brief This function is called on the startup of the chip
