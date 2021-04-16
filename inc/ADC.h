@@ -29,7 +29,7 @@ From the reference manual page 237
 typedef enum
 {
 	ADC_end_of_conversion = 0x02,
-	ADC_regular_start	  = 0x10
+	ADC_regular_start	  = 0x10,
 } ADC_flag_t;
 
 typedef enum
@@ -73,6 +73,9 @@ bool ADC_init_ex(uint8_t * channels, ADC_SAMPLING_TIME_t * channels_sampling_tim
  *
  * @param flag which flag to check
  * @return bool flag state
+ * 
+ * @remark This function is to only retrieve the flags related to the ADC,
+ * 		   to get the flags of the DMA of the ADC, use the appropiate DMA function
  */
 bool ADC_get_flag(ADC_flag_t flag);
 
