@@ -330,6 +330,7 @@ void GPIO_array_write_value(const GPIO_PIN_ARRAY_t * pin_array, uint16_t value)
 	}
 
 	pin_mask = utils_generate_mask(pin_array->start_pin, pin_array->end_pin);
+	value = value & utils_generate_mask(0, pin_array->num_of_pins); // Clear any overflowing bits
 	port_struct->ODR &= ~pin_mask;
 	port_struct->ODR |= value << pin_array->start_pin; // We dont want to override other pins, right?
 }
