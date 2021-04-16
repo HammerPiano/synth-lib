@@ -56,6 +56,16 @@ typedef enum
 	GPIO_CONFIG_OUTPUT_OPEN_DRAIN_ALT,
 } GPIO_CONFIG_t;
 
+typedef enum
+{
+	GPIO_NO_ERR,
+	GPIO_NULL,
+	GPIO_PINS_RESERVED,
+	GPIO_INVALID_PIN,
+	GPIO_INVALID_PORT
+
+} GPIO_ERR_t;
+
 typedef struct _GPIO_PIN_ARRAY
 {
 	uint32_t start_pin : 4;
@@ -75,10 +85,9 @@ typedef struct _GPIO_PIN_ARRAY
  * @param end_pin last pin in group (included)
  * @param mode input/output
  * @param config specific configuration
- * @return true config successfull
- * @return false config failed
+ * @return GPIO_ERR_t errors if any
  */
-bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config);
+GPIO_ERR_t GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config);
 
 /*
  ? Output functions

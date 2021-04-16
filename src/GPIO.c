@@ -154,35 +154,34 @@ static GPIO_TypeDef * get_port(GPIO_PORT_t port)
  * @param end_pin end pin
  * @param mode gpio mode
  * @param config gpio config
- * @return true config successfull
- * @return false config failed
+ * @return GPIO_ERR_t error if any
  *
- * @remarks the function handles configurations of pins 8-15, not beyond that
+ * @remarks the function handles configurations of pins 0-15, not beyond that
  */
-bool static config_cr_register(periph_ptr_t gpio_cr, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config)
+GPIO_ERR_t static config_cr_register(periph_ptr_t gpio_cr, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config)
 {
 	uint32_t pin_init_value = mode | ((config & 2) << 2), pin_array_init_value = 0, pin_mask = 0;
 
 	if (gpio_cr == NULL)
 	{
-		return false;
+		return GPIO_NULL;
 	}
 	if (start_pin > GPIO_MAX_CRH || end_pin > GPIO_MAX_CRH)
 	{
-		return false;
+		return GPIO_INVALID_PIN;
 	}
 	// calculate the pins to range from 0-7, in both CRL and CRH
 	start_pin &= GPIO_MAX_CR;
 	end_pin &= GPIO_MAX_CR;
 	for (int i = start_pin; i <= end_pin; i++)
 	{
-		pin_array_init_value |= pin_init_value << (4 * i);
+		pin_array_init_value |= pin_init_value << (GPIO_BIT_PER_PIN * i);
 	}
 	pin_mask = generate_cr_mask(start_pin, end_pin);
 	// set relevant bits to their values
 	*gpio_cr &= ~pin_mask;
 	*gpio_cr |= pin_array_init_value;
-	return true;
+	return GPIO_NO_ERR;
 }
 
 /**
@@ -190,21 +189,20 @@ bool static config_cr_register(periph_ptr_t gpio_cr, uint8_t start_pin, uint8_t 
  *
  * @param pin_array pin array object
  * @param pull_up true to pull up, false other wise
- * @return true config successfull
- * @return false config failed
+ * @return GPIO_ERR_t errors if any
  */
-bool static activate_input_pull(pGPIO_PIN_ARRAY_t pin_array, bool pull_up)
+GPIO_ERR_t static activate_input_pull(pGPIO_PIN_ARRAY_t pin_array, bool pull_up)
 {
 	GPIO_TypeDef * port_struct = NULL;
 	uint16_t	   pin_mask	   = 0;
 	if (pin_array == NULL)
 	{
-		return false;
+		return GPIO_NULL;
 	}
 	port_struct = get_port(pin_array->port);
 	if (port_struct == NULL)
 	{
-		return false;
+		return GPIO_INVALID_PORT;
 	}
 	pin_mask = utils_generate_mask(pin_array->start_pin, pin_array->end_pin);
 	// to activate PULL UP write 1 for each input pin in ODR, to activate PULL DOWN write 0
@@ -219,9 +217,9 @@ bool static activate_input_pull(pGPIO_PIN_ARRAY_t pin_array, bool pull_up)
 	return true;
 }
 
-bool static config_pins(const GPIO_PIN_ARRAY_t * pin_array)
+GPIO_ERR_t static config_pins(const GPIO_PIN_ARRAY_t * pin_array)
 {
-	bool		   return_value = true;
+	GPIO_ERR_t		   return_value = GPIO_NO_ERR;
 	GPIO_TypeDef * port_struct	= get_port(pin_array->port);
 	// each CRx is responsible for different pins in the port, CRL for first 8 pins, CRH for the others
 	uint8_t crl_max = pin_array->end_pin > GPIO_MAX_CRL ? GPIO_MAX_CRL : pin_array->end_pin;
@@ -229,7 +227,7 @@ bool static config_pins(const GPIO_PIN_ARRAY_t * pin_array)
 
 	if (port_struct == NULL)
 	{
-		return NULL;
+		return GPIO_NULL;
 	}
 
 	if (pin_array->start_pin <= GPIO_MAX_CRL)
@@ -237,29 +235,29 @@ bool static config_pins(const GPIO_PIN_ARRAY_t * pin_array)
 		return_value = config_cr_register(&(port_struct->CRL), pin_array->start_pin, crl_max, pin_array->mode, pin_array->config);
 	}
 
-	if (return_value == true && pin_array->end_pin > GPIO_MIN_CRL)
+	if (return_value == GPIO_NO_ERR && pin_array->end_pin > GPIO_MIN_CRL)
 	{
 		return_value = config_cr_register(&(port_struct->CRH), crh_min, pin_array->end_pin, pin_array->mode, pin_array->config);
 	}
 	return return_value;
 }
 
-bool GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config)
+GPIO_ERR_t GPIO_array_init(pGPIO_PIN_ARRAY_t pin_array, GPIO_PORT_t port, uint8_t start_pin, uint8_t end_pin, GPIO_MODE_t mode, GPIO_CONFIG_t config)
 {
-	bool return_value = true;
+	GPIO_ERR_t return_value = GPIO_NO_ERR;
 	// Validate parameters
 	if (pin_array == NULL)
 	{
-		return false;
+		return GPIO_NULL;
 	}
 	if (start_pin > GPIO_MAX_PIN || end_pin > GPIO_MAX_PIN)
 	{
-		return false;
+		return GPIO_INVALID_PIN;
 	}
 
 	if (reserve_pins(port, utils_generate_mask(start_pin, end_pin)) == false)
 	{
-		return false;
+		return GPIO_PINS_RESERVED;
 	}
 
 	// init the struct
@@ -332,8 +330,9 @@ void GPIO_array_write_value(const GPIO_PIN_ARRAY_t * pin_array, uint16_t value)
 	}
 
 	pin_mask = utils_generate_mask(pin_array->start_pin, pin_array->end_pin);
+	value = value & utils_generate_mask(0, pin_array->num_of_pins); // Clear any overflowing bits
 	port_struct->ODR &= ~pin_mask;
-	port_struct->ODR |= value;
+	port_struct->ODR |= value << pin_array->start_pin; // We dont want to override other pins, right?
 }
 
 /*
