@@ -156,7 +156,8 @@ static void set_sequence_channel_count(uint8_t channel_count)
 		return;
 	}
 	ADC1->SQR1 &= ~(utils_generate_mask(SEQUENCE_LEN_OFFSET, SEQUENCE_LEN_OFFSET + SEQUENCE_LEN_SIZE - 1));
-	ADC1->SQR1 |= channel_count << SEQUENCE_LEN_OFFSET;
+	// the value is count x times + 1
+	ADC1->SQR1 |= (channel_count - 1) << SEQUENCE_LEN_OFFSET;
 }
 
 /*
@@ -179,6 +180,7 @@ bool ADC_init(uint8_t * channels, uint8_t count_channels, uint16_t * output)
 		set_channel_sampling_time(channels[i], ADC_DEFAULT_SAMPLING_TIME);
 		set_channel_sequence_index(i, channels[i]);
 	}
+	set_sequence_channel_count(count_channels);
 	s_adc1_init = true;
 	return true;
 }
@@ -199,6 +201,7 @@ bool ADC_init_ex(uint8_t * channels, ADC_SAMPLING_TIME_t * channels_sampling_tim
 		set_channel_sampling_time(channels[i], channels_sampling_time[i]);
 		set_channel_sequence_index(i, channels[i]);
 	}
+	set_sequence_channel_count(count_channels);
 	s_adc1_init = true;
 	return true;
 }
