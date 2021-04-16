@@ -235,7 +235,7 @@ GPIO_ERR_t static config_pins(const GPIO_PIN_ARRAY_t * pin_array)
 		return_value = config_cr_register(&(port_struct->CRL), pin_array->start_pin, crl_max, pin_array->mode, pin_array->config);
 	}
 
-	if (return_value == GPIO_NO_ERR && pin_array->end_pin > GPIO_MIN_CRL)
+	if (return_value == GPIO_NO_ERR && pin_array->end_pin > GPIO_MIN_CRH)
 	{
 		return_value = config_cr_register(&(port_struct->CRH), crh_min, pin_array->end_pin, pin_array->mode, pin_array->config);
 	}
