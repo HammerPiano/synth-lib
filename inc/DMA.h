@@ -150,6 +150,13 @@ bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel_number);
  */
 bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, bool blocking);
 
+/**
+ * @brief This function will stop the given DMA channel
+ * 
+ * @param dma_channel_number which channel to stop
+ * @return true stop successfull
+ * @return false stop not successfull
+ */
 bool DMA_stop_channel(DMA_CHANNELS_t dma_channel_number);
 
 /**
