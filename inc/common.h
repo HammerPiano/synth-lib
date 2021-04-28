@@ -85,6 +85,8 @@ typedef enum
 
 #define WAIT(t) while(t) {asm("nop");}
 
+#define F_CPU (72000000)
+
 typedef __IO uint32_t * periph_ptr_t;
 
 #endif /* __COMMON_H__ */
