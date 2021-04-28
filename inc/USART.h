@@ -1,3 +1,5 @@
+#ifndef __USART_H__
+#define __USART_H__
 #include "common.h"
 
 typedef enum
@@ -108,3 +110,4 @@ periph_ptr_t USART_get_data_register(USART_NUMBER_e usart_num);
  * @return bool flag status (on/off)
  */
 bool USART_get_flag(USART_NUMBER_e usart_num, uint32_t flag);
+#endif // __USART_H__
