@@ -36,6 +36,9 @@ typedef enum
 #define USART_STAT_FLAG_RX_FULL		(0x20)
 #define USART_STAT_FLAG_PARITY_ERR	(0x01)
 
+#define USART_BAUD_RATE_MAX			(2250000)
+#define USART_BAUD_RATE_DEFAULT		(115200)
+
 /**
  * @brief This function will initialize the given usart interface
  * 
