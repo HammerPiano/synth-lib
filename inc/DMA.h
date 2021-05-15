@@ -23,13 +23,11 @@ typedef enum
 typedef enum
 {
 	/* DMA Channel 1 Sources */
-
 	DMA_CH1_ADC1	 = DMA_CH1,
 	DMA_CH1_TIM2_CH3 = DMA_CH1,
 	DMA_CH1_TIM4_CH1 = DMA_CH1,
 
 	/* DMA Channel 2 Sources */
-
 	DMA_CH2_SPI1_RX		= DMA_CH2,
 	DMA_CH2_USART3_TX	= DMA_CH2,
 	DMA_CH2_TIM1_CH1	= DMA_CH2,
@@ -72,7 +70,9 @@ typedef enum
 	DMA_CH7_I2C1_RX		= DMA_CH7,
 	DMA_CH7_TIM2_CH2	= DMA_CH7,
 	DMA_CH7_TIM2_CH4	= DMA_CH7,
-	DMA_CH7_TIM4_UPDATE = DMA_CH7
+	DMA_CH7_TIM4_UPDATE = DMA_CH7,
+
+	DMA_CH_INVALID = DMA_CH_COUNT
 } DMA_CH_PERIPHERALS_t;
 
 typedef enum
