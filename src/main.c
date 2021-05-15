@@ -1,6 +1,10 @@
+#include <string.h>
+#include <stdio.h>
+
 #include "ADC.h"
 #include "DMA.h"
 #include "GPIO.h"
+#include "USART.h"
 
 #define SPACE_LENGTH (720000)
 #define DOT_LENGTH	 SPACE_LENGTH
@@ -45,15 +49,19 @@ const uint16_t LED_7SEG_VALUES[] = { 0x40, 0x79, 0x24, 0x30, 0x19, 0x12, 0x02, 0
 
 int main()
 {
+	char buffer[100] = {0};
 	uint8_t	 adc_pins[] = {8, 9};// pins B0, B1 are inputs 8,9 of the ADC1
-	uint16_t 		 adc_data[2] = {0}; // X and Y values of potentiometer
+	uint16_t 		 adc_data[2] = {0}, counter = 0; // X and Y values of potentiometer
 	GPIO_PIN_ARRAY_t x_bargraph	= { 0 };
 	GPIO_PIN_ARRAY_t y_bargraph	= { 0 };
 	GPIO_PIN_ARRAY_t adc_inputs = { 0 };
+	GPIO_PIN_ARRAY_t usart_pins = { 0 };
 	GPIO_array_init(&x_bargraph, LED_X_PORT, LED_X_START, LED_X_END, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
 	GPIO_array_init(&y_bargraph, LED_Y_PORT, LED_Y_START, LED_Y_END, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
 	GPIO_array_init(&adc_inputs, GPIO_PORT_B, 0, 1, GPIO_MODE_INPUT, GPIO_CONFIG_INPUT_ANALOG);
+	GPIO_array_init(&usart_pins, GPIO_PORT_A, 9, 10, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL_ALT);
 	ADC_init(adc_pins, sizeof(adc_pins) / sizeof(adc_pins[0]), adc_data);
+	USART_init(USART_NO_1, USART_BAUD_RATE_DEFAULT, USART_CONF_FLAG_TX_ON);
 	GPIO_array_write_all(&y_bargraph, 0);
 	GPIO_array_write_all(&x_bargraph, 0);
 	while (1)
@@ -71,5 +79,13 @@ int main()
 		GPIO_array_write_value(&x_bargraph, 1 << (adc_data[0] / ADC_LED_RANGE));
 		GPIO_array_write_value(&y_bargraph, 1 << (adc_data[1] / ADC_LED_RANGE));
 		// wait for release
+		if ((++counter) >= 60000)
+		{
+			counter = 0;
+			//snprintf(buffer, sizeof(buffer), "%d %d\r\n", adc_data[0], adc_data[1]);
+			USART_data_write_dma(USART_NO_1, "aaa", 3);
+			WAIT(USART_get_flag(USART_NO_1, USART_STAT_FLAG_TX_DONE) == 0)
+		}
+
 	}
 }
