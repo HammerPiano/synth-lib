@@ -21,8 +21,9 @@ typedef struct
 #define USART2              ((USART_TypeDef *)USART2_BASE)
 #define USART3              ((USART_TypeDef *)USART3_BASE)
 
-#define USART_ON	(0x00002000)
-
+#define USART_ON		(0x00002000)
+#define USART_DMA_TX	(0x00000080)
+#define USART_DMA_RX	(0x00000040)
 /*
  ? Static functions
 */
@@ -200,6 +201,39 @@ void USART_data_write(USART_NUMBER_t usart_num, const void * data, uint32_t data
 		}
 	}
 	
+}
+
+bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t data_size)
+{
+	DMA_CHANNELS_t dma_ch = DMA_CH_INVALID;
+	USART_TypeDef * usart = get_usart_ptr(usart_num);
+	DMA_address_t usart_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=false, .address=USART_get_data_register(usart_num)};
+	DMA_address_t memory_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=true, .address=(uint32_t)data};
+	if (usart == NULL)
+	{
+		return false;
+	}
+	dma_ch = USART_to_dma_channel(usart_num, true);
+
+	if (DMA_init_channel(dma_ch, &usart_side, &memory_side, DMA_CH_PRIORITY_HIGH, DMA_DIRECTION_PERIPH_TO_MEM, 0) == false)
+	{
+		return false;
+	}
+	usart->CR3 = USART_DMA_TX;
+	usart->SR = 0;
+	DMA_start_channel(dma_ch, data_size, false);
+	
+	return true;
+}
+
+periph_ptr_t USART_get_data_register(USART_NUMBER_t usart_num)
+{
+	USART_TypeDef * usart = get_usart_ptr(usart_num);
+	if (usart == NULL)
+	{
+		return NULL;
+	}
+	return &(usart->DR);
 }
 
 bool USART_get_flag(USART_NUMBER_t usart_num, uint32_t flag)
