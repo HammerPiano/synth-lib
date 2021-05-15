@@ -1,13 +1,14 @@
 #ifndef __USART_H__
 #define __USART_H__
 #include "common.h"
+#include "DMA.h"
 
 typedef enum
 {
 	USART_NO_1,
 	USART_NO_2,
 	USART_NO_3
-} USART_NUMBER_e;
+} USART_NUMBER_t;
 
 typedef enum
 {
@@ -15,19 +16,22 @@ typedef enum
 	USART_STOP_1_0,
 	USART_STOP_1_5,
 	USART_STOP_2_0
-}USART_STOP_BIT_e;
+}USART_STOP_BIT_t;
 
 /*
  * Usart configuration flags
 */
-#define USART_CONF_FLAG_RX_ON		(0x04)
-#define USART_CONF_FLAG_TX_ON		(0x08)
-#define USART_CONF_FLAG_PARITY_OFF	(0x0)
-#define USART_CONF_FLAG_PARITY_EVEN	(0x200)
-#define USART_CONF_FLAG_PARITY_ODD	(0x300)
-#define USART_CONF_FLAG_WORD_8_BIT	(0x0)
-#define USART_CONF_FLAG_WORD_9_BIT	(0x1000)
-
+#define USART_CONF_FLAG_RX_ON				(0x00000004)
+#define USART_CONF_FLAG_TX_ON				(0x00000008)
+#define USART_CONF_FLAG_PARITY_OFF			(0x00000000)
+#define USART_CONF_FLAG_PARITY_EVEN			(0x00000200)
+#define USART_CONF_FLAG_PARITY_ODD			(0x00000300)
+#define USART_CONF_FLAG_PARITY_ON			(0x00000200)
+#define USART_CONF_FLAG_WORD_8_BIT			(0x00000000)
+#define USART_CONF_FLAG_WORD_9_BIT			(0x00001000)
+#define USART_CONF_FLAG_WORD_MASK			(0x00001000)
+#define USART_CONF_FLAG_STOP_BIT_MASK		(0x30000000)
+#define USART_CONF_FLAG_STOP_BIT_CALC(x)	(x << 28)
 /*
  * Usart status flags
 */
@@ -47,16 +51,20 @@ typedef enum
  * @param flags any flags set by the USART_CONF_FLAG_*
  * @return true initializaion complete
  * @return false initializaion failure
+ * 
+ * @remark This implementation supports either 8 bit no parity, or 9 bit with parity
  */
-bool USART_init(USART_NUMBER_e usart_num, uint32_t baud_rate, uint32_t flags);
+bool USART_init(USART_NUMBER_t usart_num, uint32_t baud_rate, uint32_t flags);
 
 /**
  * @brief This function will write a byte to the USART peripheral
  * 
  * @param usart_num which usart to write
  * @param data what to send
+ * 
+ * @remark Non blocking, poll flag USART_STAT_FLAG_TX_DONE to see when done
  */
-void USART_byte_write(USART_NUMBER_e usart_num, uint8_t data);
+void USART_byte_write(USART_NUMBER_t usart_num, uint8_t data);
 
 /**
  * @brief This function will write a buffer (in a blocking way) to the USART
@@ -64,8 +72,10 @@ void USART_byte_write(USART_NUMBER_e usart_num, uint8_t data);
  * @param usart_num which USART to write
  * @param data pointer to data
  * @param data_size how much data
+ * 
+ * @remark This function is blocking while it is writing to the USART
  */
-void USART_data_write(USART_NUMBER_e usart_num, const void * data, uint32_t data_size);
+void USART_data_write(USART_NUMBER_t usart_num, const void * data, uint32_t data_size);
 
 /**
  * @brief This function will write a buffer using the DMA (without blocking) to the USART
@@ -76,7 +86,7 @@ void USART_data_write(USART_NUMBER_e usart_num, const void * data, uint32_t data
  * @return true write successfull
  * @return false write failed (DMA is in use)
  */
-bool USART_data_write_dma(USART_NUMBER_e usart_num, const void * data, uint32_t data_size);
+bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t data_size);
 
 /**
  * @brief This function will read from the USART
@@ -84,7 +94,7 @@ bool USART_data_write_dma(USART_NUMBER_e usart_num, const void * data, uint32_t 
  * @param usart_num which USART to read from
  * @return uint8_t data
  */
-uint8_t USART_byte_read(USART_NUMBER_e usart_num);
+uint8_t USART_byte_read(USART_NUMBER_t usart_num);
 
 /**
  * @brief This function will read to a buffer from the USART (it will block)
@@ -95,7 +105,7 @@ uint8_t USART_byte_read(USART_NUMBER_e usart_num);
  * @return true read was successfull
  * @return false read failed
  */
-bool USART_data_read_dma(USART_NUMBER_e usart_num, void * data, uint32_t data_size);
+bool USART_data_read_dma(USART_NUMBER_t usart_num, void * data, uint32_t data_size);
 
 /**
  * @brief This function will return the address of the data register of the USART
@@ -103,7 +113,7 @@ bool USART_data_read_dma(USART_NUMBER_e usart_num, void * data, uint32_t data_si
  * @param usart_num which USART to retrieve
  * @return periph_ptr_t address
  */
-periph_ptr_t USART_get_data_register(USART_NUMBER_e usart_num);
+periph_ptr_t USART_get_data_register(USART_NUMBER_t usart_num);
 
 /**
  * @brief This function will return a flag from the USART
@@ -112,5 +122,15 @@ periph_ptr_t USART_get_data_register(USART_NUMBER_e usart_num);
  * @param flag any of the USART_STAT_FLAG_* defines
  * @return bool flag status (on/off)
  */
-bool USART_get_flag(USART_NUMBER_e usart_num, uint32_t flag);
+bool USART_get_flag(USART_NUMBER_t usart_num, uint32_t flag);
+
+/**
+ * @brief This function converts from usart number to the correct DMA channel (Depending on TX or RX)
+ * 
+ * @param usart_num which usart to check
+ * @param tx tx channel (true) or rx channel (false)
+ * @return DMA_CH_PERIPHERALS_t DMA channel to check
+ */
+DMA_CH_PERIPHERALS_t USART_to_dma_channel(USART_NUMBER_t usart_num, bool tx);
+
 #endif // __USART_H__
