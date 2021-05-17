@@ -34,7 +34,7 @@ typedef struct
 #define s_DMA_CHANNELS ((DMA_CH_CONFIG_t *)DMA1_Channels_BASE)
 #define s_DMA1		   ((DMA_COMMON_t *)DMA1_BASE)
 
-static uint8_t s_reserved_channels = 0;
+static DMA_CH_PERIPHERALS_t s_reserved_channels[DMA_CH_COUNT] = {DMA_CH_INVALID};
 
 /*
  ? Channel usage monitoring functions
@@ -47,9 +47,9 @@ static uint8_t s_reserved_channels = 0;
  * @return true channel is reserved
  * @return false channel is free
  */
-static bool is_channel_reserved(DMA_CHANNELS_t channel)
+static bool is_channel_reserved(DMA_CH_PERIPHERALS_t channel)
 {
-	return s_reserved_channels & (1 << channel);
+	return s_reserved_channels[DMA_CH_DECODE(channel)] == DMA_CH_INVALID;
 }
 
 /**
@@ -59,13 +59,13 @@ static bool is_channel_reserved(DMA_CHANNELS_t channel)
  * @return true channel successfully reserved
  * @return false channel already reserved
  */
-static bool reserve_channel(DMA_CHANNELS_t channel)
+static bool reserve_channel(DMA_CH_PERIPHERALS_t channel)
 {
 	if (is_channel_reserved(channel))
 	{
 		return false;
 	}
-	s_reserved_channels |= 1 << channel;
+	s_reserved_channels[DMA_CH_DECODE(channel)] = DMA_CH_SOURCE(channel);
 	return true;
 }
 
@@ -74,9 +74,9 @@ static bool reserve_channel(DMA_CHANNELS_t channel)
  *
  * @param channel channel to free
  */
-static void free_channel(DMA_CHANNELS_t channel)
+static void free_channel(DMA_CH_PERIPHERALS_t channel)
 {
-	s_reserved_channels &= ~(1 << channel);
+	s_reserved_channels[DMA_CH_DECODE(channel)] = DMA_CH_INVALID;
 }
 
 /*
@@ -86,17 +86,18 @@ static void free_channel(DMA_CHANNELS_t channel)
 /**
  * @brief Get the channel object
  *
- * @param dma_channel_number channel number
+ * @param channel_config channel number
  * @return DMA_CH_CONFIG_t* address of channel, NULL incase of faliure
  */
-static DMA_CH_CONFIG_t * get_channel(DMA_CHANNELS_t dma_channel_number)
+static DMA_CH_CONFIG_t * get_channel(DMA_CH_PERIPHERALS_t channel_config)
 {
 	DMA_CH_CONFIG_t * channel = NULL;
-	if (dma_channel_number >= DMA_CH_COUNT)
+	DMA_CHANNELS_t ch_num = DMA_CH_DECODE(channel_config);
+	if (ch_num >= DMA_CH_COUNT)
 	{
 		return NULL;
 	}
-	channel = s_DMA_CHANNELS + dma_channel_number;
+	channel = s_DMA_CHANNELS + ch_num;
 	if (channel > DMA1_END) /* should never happen */
 	{
 		return NULL;
@@ -104,20 +105,20 @@ static DMA_CH_CONFIG_t * get_channel(DMA_CHANNELS_t dma_channel_number)
 	return channel;
 }
 
-bool DMA_init_channel(DMA_CHANNELS_t		dma_channel_number,
+bool DMA_init_channel(DMA_CH_PERIPHERALS_t	channel_config,
 					  const DMA_address_t * peripheral,
 					  const DMA_address_t * memory,
 					  uint32_t				priority,
 					  uint32_t				direction,
 					  uint32_t				interrupt_mask)
 {
-	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	DMA_CH_CONFIG_t * channel = get_channel(channel_config);
 	if (channel == NULL) /* should never happen */
 	{
 		return false;
 	}
 
-	if (reserve_channel(dma_channel_number) == false)
+	if (reserve_channel(channel_config) == false)
 	{
 		return false;
 	}
@@ -135,15 +136,15 @@ bool DMA_init_channel(DMA_CHANNELS_t		dma_channel_number,
 	return true;
 }
 
-bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel_number)
+bool DMA_de_init_channel(DMA_CH_PERIPHERALS_t channel_config)
 {
-	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	DMA_CH_CONFIG_t * channel = get_channel(channel_config);
 	if (channel == NULL) /* should never happen */
 	{
 		return false;
 	}
 
-	free_channel(dma_channel_number);
+	free_channel(channel_config);
 	channel->CCR   = 0;
 	channel->CMAR  = 0;
 	channel->CPAR  = 0;
@@ -151,9 +152,9 @@ bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel_number)
 	return true;
 }
 
-bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, bool blocking)
+bool DMA_start_channel(DMA_CH_PERIPHERALS_t channel_config, uint16_t data_count, bool blocking)
 {
-	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	DMA_CH_CONFIG_t * channel = get_channel(channel_config);
 	if (channel == NULL) /* should never happen */
 	{
 		return false;
@@ -165,7 +166,7 @@ bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, b
 	channel->CNDTR = data_count;
 	if (blocking)
 	{
-		while (!DMA_channel_get_flag(dma_channel_number, DMA_FLAG_FINISHED))
+		while (!DMA_channel_get_flag(channel_config, DMA_FLAG_FINISHED))
 		{
 			asm("nop");
 		}
@@ -176,9 +177,9 @@ bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, b
 	return true;
 }
 
-bool DMA_stop_channel(DMA_CHANNELS_t dma_channel_number)
+bool DMA_stop_channel(DMA_CH_PERIPHERALS_t channel_config)
 {
-	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	DMA_CH_CONFIG_t * channel = get_channel(channel_config);
 	if (channel == NULL) /* should never happen */
 	{
 		return false;
@@ -187,9 +188,9 @@ bool DMA_stop_channel(DMA_CHANNELS_t dma_channel_number)
 	return true;
 }
 
-bool DMA_set_software_trigger(DMA_CHANNELS_t dma_channel_number, bool software_trigger)
+bool DMA_set_software_trigger(DMA_CH_PERIPHERALS_t channel_config, bool software_trigger)
 {
-	DMA_CH_CONFIG_t * channel = get_channel(dma_channel_number);
+	DMA_CH_CONFIG_t * channel = get_channel(channel_config);
 	if (channel == NULL) /* should never happen */
 	{
 		return false;
@@ -204,29 +205,70 @@ bool DMA_set_software_trigger(DMA_CHANNELS_t dma_channel_number, bool software_t
 	}
 }
 
-bool DMA_channel_get_flag(DMA_CHANNELS_t dma_channel_number, DMA_FLAG_t flag)
+bool DMA_channel_get_flag(DMA_CH_PERIPHERALS_t channel_config, DMA_FLAG_t flag)
 {
 	uint32_t flag_mask = 0;
-	if (dma_channel_number > DMA_CH_COUNT)
+	DMA_CHANNELS_t ch_num = DMA_CH_DECODE(channel_config);
+	if (ch_num > DMA_CH_COUNT)
 	{
 		return false;
 	}
-	flag_mask = flag << (dma_channel_number * DMA_ISR_FLAG_PER_CHANNEL + 1);
+	flag_mask = flag << (ch_num * DMA_ISR_FLAG_PER_CHANNEL + 1);
 	return s_DMA1->ISR & flag_mask;
 }
 
-bool DMA_channel_clear_flags(DMA_CHANNELS_t dma_channel_number)
+bool DMA_channel_clear_flags(DMA_CH_PERIPHERALS_t channel_config)
 {
-	if (dma_channel_number > DMA_CH_COUNT)
+	DMA_CHANNELS_t ch_num = DMA_CH_DECODE(channel_config);
+	if (ch_num > DMA_CH_COUNT)
 	{
 		return false;
 	}
-	s_DMA1->IFCR |= DMA_FLAG_ALL << (dma_channel_number * DMA_ISR_FLAG_PER_CHANNEL);
+	s_DMA1->IFCR |= DMA_FLAG_ALL << (ch_num * DMA_ISR_FLAG_PER_CHANNEL);
 	return true;
 }
 
 void DMA_startup()
 {
-	s_reserved_channels = 0;
+	//s_reserved_channels = 0;
 	RCC_peripheral_set_clock(RCC_DMA1, true);
+}
+
+/*void DMA1_Channel1_IRQHandler()
+{
+	switch (s_reserved_channels[0])
+	{
+
+	}
+}*/
+void DMA1_Channel2_IRQHandler()
+{
+	switch (s_reserved_channels[1])
+	{
+		case DMA_CH2_USART3_TX:
+
+		break;
+		default:
+		break;
+	}
+}
+void DMA1_Channel3_IRQHandler()
+{
+	switch (s_reserved_channels[2])
+}
+void DMA1_Channel4_IRQHandler()
+{
+	switch (s_reserved_channels[3])
+}
+void DMA1_Channel5_IRQHandler()
+{
+	switch (s_reserved_channels[4])
+}
+void DMA1_Channel6_IRQHandler()
+{
+	switch (s_reserved_channels[5])
+}
+void DMA1_Channel7_IRQHandler()
+{
+	switch (s_reserved_channels[6])
 }
