@@ -133,4 +133,15 @@ bool USART_get_flag(USART_NUMBER_t usart_num, uint32_t flag);
  */
 DMA_CH_PERIPHERALS_t USART_to_dma_channel(USART_NUMBER_t usart_num, bool tx);
 
+/**
+ * @brief This function is the handler of all USART sourced DMA interrupts
+ * 
+ * @param usart_num which usart has caused a DMA interrupt
+ * @param tx tx or not
+ * 
+ * ! This function is called automatically, do not call it directrly
+ */
+void USART_DMA_handler(USART_NUMBER_t usart_num, bool tx);
+
+
 #endif // __USART_H__

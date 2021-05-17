@@ -205,24 +205,23 @@ void USART_data_write(USART_NUMBER_t usart_num, const void * data, uint32_t data
 
 bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t data_size)
 {
-	DMA_CHANNELS_t dma_ch = DMA_CH_INVALID;
+	DMA_CH_PERIPHERALS_t dma_ch = DMA_CH_INVALID;
 	USART_TypeDef * usart = get_usart_ptr(usart_num);
 	DMA_address_t usart_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=false, .address=USART_get_data_register(usart_num)};
-	DMA_address_t memory_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=true, .address=(uint32_t)data};
+	DMA_address_t memory_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=true, .address=data};
 	if (usart == NULL)
 	{
 		return false;
 	}
 	dma_ch = USART_to_dma_channel(usart_num, true);
 
-	if (DMA_init_channel(dma_ch, &usart_side, &memory_side, DMA_CH_PRIORITY_HIGH, DMA_DIRECTION_PERIPH_TO_MEM, 0) == false)
+	if (DMA_init_channel(dma_ch, &usart_side, &memory_side, DMA_CH_PRIORITY_LOW, DMA_DIRECTION_MEM_TO_PERIPH, DMA_INTERRUPT_COMPLETE) == false)
 	{
 		return false;
 	}
-	usart->CR3 = USART_DMA_TX;
 	usart->SR = 0;
 	DMA_start_channel(dma_ch, data_size, false);
-	
+	usart->CR3 = USART_DMA_TX;
 	return true;
 }
 
@@ -244,4 +243,18 @@ bool USART_get_flag(USART_NUMBER_t usart_num, uint32_t flag)
 		return false;
 	}
 	return usart->SR & flag;
+}
+
+void USART_DMA_handler(USART_NUMBER_t usart_num, bool tx)
+{
+	USART_TypeDef * usart = get_usart_ptr(usart_num);
+	// Should never ever happen
+	if (usart == NULL)
+	{
+		return;
+	}
+	// The way usart and dma communicate, is that on TX/Rx usart enables the interrupt and then on the interrupt it should be reset
+	DMA_de_init_channel(USART_to_dma_channel(usart_num, tx));
+	// Clear the DMA flags
+	usart->CR3 &= ~(USART_DMA_TX | USART_DMA_RX);
 }
