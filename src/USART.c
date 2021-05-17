@@ -236,6 +236,34 @@ periph_ptr_t USART_get_data_register(USART_NUMBER_t usart_num)
 	return &(usart->DR);
 }
 
+int16_t USART_byte_read(USART_NUMBER_t usart_num, bool blocking)
+{
+	USART_TypeDef * usart = NULL;
+	int16_t data = -1;
+	usart = get_usart_ptr(usart_num);
+	if (usart == NULL)
+	{
+		return -1;
+	}
+	// Transmitter is off, cannot send any data
+	if ((usart->CR1 & USART_CONF_FLAG_RX_ON) == 0)
+	{
+		return -1;
+	}
+	// ? If blocking, wait in function untill character has been recepted
+	// ? Other wise, just check if character has been recepted
+	if (blocking)
+	{
+		WAIT(USART_get_flag(usart_num, USART_STAT_FLAG_RX_FULL) == 0);
+		data = usart->DR;
+	}
+	else if(USART_get_flag(usart_num, USART_STAT_FLAG_RX_FULL))
+	{
+		data = usart->DR;
+	}
+	return data;
+}
+
 bool USART_get_flag(USART_NUMBER_t usart_num, uint32_t flag)
 {
 	USART_TypeDef * usart = get_usart_ptr(usart_num);

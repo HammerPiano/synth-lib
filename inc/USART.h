@@ -92,9 +92,11 @@ bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t 
  * @brief This function will read from the USART
  * 
  * @param usart_num which USART to read from
- * @return uint8_t data
+ * @param blocking	should the usart wait for data or not
+ * @return int16_t	data - 8 bit
+ * 					error - -1
  */
-uint8_t USART_byte_read(USART_NUMBER_t usart_num);
+int16_t USART_byte_read(USART_NUMBER_t usart_num, bool blocking);
 
 /**
  * @brief This function will read to a buffer from the USART (it will block)
