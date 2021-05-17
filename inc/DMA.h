@@ -3,10 +3,10 @@
 
 #include "common.h"
 
-#define DMA_INTERRUPT_ERROR	   (0x00000008)
-#define DMA_INTERRUPT_HALF	   (0x00000004)
-#define DMA_INTERRUPT_COMPLETE (0x00000002)
-
+#define DMA_INTERRUPT_ERROR	  	(0x00000008)
+#define DMA_INTERRUPT_HALF	  	(0x00000004)
+#define DMA_INTERRUPT_COMPLETE	(0x00000002)
+#define DMA_INTERRUPT_ALL		(DMA_INTERRUPT_ERROR | DMA_INTERRUPT_HALF | DMA_INTERRUPT_COMPLETE)
 #define DMA_CH_OFFSET		8
 #define DMA_CH_ENCODE(ch)	(ch << DMA_CH_OFFSET)
 #define DMA_CH_DECODE(ch)	(ch >> DMA_CH_OFFSET)
@@ -133,7 +133,7 @@ typedef struct
  * @return true init successfull
  * @return false init not successfull
  */
-bool DMA_init_channel(DMA_CHANNELS_t		dma_channel_number,
+bool DMA_init_channel(DMA_CH_PERIPHERALS_t		dma_channel_number,
 					  const DMA_address_t * peripheral,
 					  const DMA_address_t * memory,
 					  uint32_t				priority,
@@ -147,7 +147,7 @@ bool DMA_init_channel(DMA_CHANNELS_t		dma_channel_number,
  * @return true reset successfull
  * @return false rest not successfull
  */
-bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel_number);
+bool DMA_de_init_channel(DMA_CH_PERIPHERALS_t dma_channel_number);
 
 /**
  * @brief This function will start transfering data
@@ -158,7 +158,7 @@ bool DMA_de_init_channel(DMA_CHANNELS_t dma_channel_number);
  * @return true transfer started successfully
  * @return false transfer not started successfully
  */
-bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, bool blocking);
+bool DMA_start_channel(DMA_CH_PERIPHERALS_t dma_channel_number, uint16_t data_count, bool blocking);
 
 /**
  * @brief This function will stop the given DMA channel
@@ -167,7 +167,7 @@ bool DMA_start_channel(DMA_CHANNELS_t dma_channel_number, uint16_t data_count, b
  * @return true stop successfull
  * @return false stop not successfull
  */
-bool DMA_stop_channel(DMA_CHANNELS_t dma_channel_number);
+bool DMA_stop_channel(DMA_CH_PERIPHERALS_t dma_channel_number);
 
 /**
  * @brief This function will enable or disable the automatic software trigger for data transfer
@@ -177,7 +177,7 @@ bool DMA_stop_channel(DMA_CHANNELS_t dma_channel_number);
  * @return true no error
  * @return false error
  */
-bool DMA_set_software_trigger(DMA_CHANNELS_t dma_channel_number, bool software_trigger);
+bool DMA_set_software_trigger(DMA_CH_PERIPHERALS_t dma_channel_number, bool software_trigger);
 
 /**
  * @brief This function will get the desired flag for the given channel
@@ -189,7 +189,7 @@ bool DMA_set_software_trigger(DMA_CHANNELS_t dma_channel_number, bool software_t
  *
  * @remarks to get if the channel is still tranfering, provide DMA_FLAG_FINISHED and check while it is zero
  */
-bool DMA_channel_get_flag(DMA_CHANNELS_t dma_channel_number, DMA_FLAG_t flag);
+bool DMA_channel_get_flag(DMA_CH_PERIPHERALS_t dma_channel_number, DMA_FLAG_t flag);
 
 /**
  * @brief This function will clear all flags for the given channel
@@ -198,7 +198,7 @@ bool DMA_channel_get_flag(DMA_CHANNELS_t dma_channel_number, DMA_FLAG_t flag);
  * @return true clear successfull
  * @return false clear failed
  */
-bool DMA_channel_clear_flags(DMA_CHANNELS_t dma_channel_number);
+bool DMA_channel_clear_flags(DMA_CH_PERIPHERALS_t dma_channel_number);
 
 /**
  * @brief This function is called on startup of the chip
