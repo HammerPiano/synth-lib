@@ -42,7 +42,7 @@
 #define __CORE_CM3_H_GENERIC
 
 #include <stdint.h>
-
+#include "common.h"
 #ifdef __cplusplus
  extern "C" {
 #endif
