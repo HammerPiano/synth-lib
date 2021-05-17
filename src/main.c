@@ -47,7 +47,7 @@ Digits is common anode
 */
 const uint16_t LED_7SEG_VALUES[] = { 0x40, 0x79, 0x24, 0x30, 0x19, 0x12, 0x02, 0x78, 0x0, 0x10, 0x08, 0x03, 0x46, 0x21, 0x06, 0x0E };
 
-int main()
+/*int main()
 {
 	char buffer[100] = {0};
 	bool started = false;
@@ -91,5 +91,36 @@ int main()
 			WAIT(USART_get_flag(USART_NO_1, USART_STAT_FLAG_TX_DONE) == 0)
 		}
 
+	}
+}*/
+
+int main()
+{
+	int16_t data = 0;
+	GPIO_PIN_ARRAY_t err_led	= { 0 };
+	GPIO_PIN_ARRAY_t stat_led	= { 0 };
+	GPIO_PIN_ARRAY_t usart_pins = { 0 };
+	GPIO_array_init(&err_led, GPIO_PORT_C, 13, 13, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_OPEN_DRAIN);
+	GPIO_array_init(&stat_led, GPIO_PORT_A, 3, 3, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
+	GPIO_array_init(&usart_pins, GPIO_PORT_A, 9, 9, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL_ALT);
+	USART_init(USART_NO_1, USART_BAUD_RATE_DEFAULT, USART_CONF_FLAG_RX_ON | USART_CONF_FLAG_TX_ON);
+	GPIO_array_write_all(&err_led, 1);
+	while (1)
+	{
+		data = USART_byte_read(USART_NO_1, true);
+		if (data == -1)
+		{
+			GPIO_array_write_all(&err_led, 0);
+		}
+		else if (data == '0')
+		{
+			GPIO_array_write_all(&stat_led, 0);
+			USART_data_write(USART_NO_1, "off", 3);
+		}
+		else if (data == '1')
+		{
+			GPIO_array_write_all(&stat_led, 1);
+			USART_data_write(USART_NO_1, "on", 2);
+		}
 	}
 }
