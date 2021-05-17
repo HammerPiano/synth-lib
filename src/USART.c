@@ -220,6 +220,7 @@ bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t 
 		return false;
 	}
 	usart->SR = 0;
+	// Uart requires that the DMA will be set first, before enabling it in the UART
 	DMA_start_channel(dma_ch, data_size, false);
 	usart->CR3 = USART_DMA_TX;
 	return true;
