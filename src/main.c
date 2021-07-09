@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "ADC.h"
 #include "DMA.h"
@@ -96,31 +97,33 @@ const uint16_t LED_7SEG_VALUES[] = { 0x40, 0x79, 0x24, 0x30, 0x19, 0x12, 0x02, 0
 
 int main()
 {
+	volatile uint8_t buffer[4] = {0};
 	int16_t data = 0;
 	GPIO_PIN_ARRAY_t err_led	= { 0 };
-	GPIO_PIN_ARRAY_t stat_led	= { 0 };
+	GPIO_PIN_ARRAY_t leds	= { 0 };
+	GPIO_PIN_ARRAY_t leds_2 = { 0 };
 	GPIO_PIN_ARRAY_t usart_pins = { 0 };
 	GPIO_array_init(&err_led, GPIO_PORT_C, 13, 13, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_OPEN_DRAIN);
-	GPIO_array_init(&stat_led, GPIO_PORT_A, 3, 3, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
+	GPIO_array_init(&leds, GPIO_PORT_A, 0, 6, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
+	GPIO_array_init(&leds_2, GPIO_PORT_B, 5, 11, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL);
 	GPIO_array_init(&usart_pins, GPIO_PORT_A, 9, 9, GPIO_MODE_OUTPUT, GPIO_CONFIG_OUTPUT_PUSH_PULL_ALT);
 	USART_init(USART_NO_1, USART_BAUD_RATE_DEFAULT, USART_CONF_FLAG_RX_ON | USART_CONF_FLAG_TX_ON);
 	GPIO_array_write_all(&err_led, 1);
 	while (1)
 	{
 		data = USART_byte_read(USART_NO_1, true);
-		if (data == -1)
+		GPIO_array_write_value(&leds_2, data);
+		if (data < 1 || data > sizeof(buffer))
 		{
 			GPIO_array_write_all(&err_led, 0);
+			continue;
 		}
-		else if (data == '0')
-		{
-			GPIO_array_write_all(&stat_led, 0);
-			USART_data_write(USART_NO_1, "off", 3);
-		}
-		else if (data == '1')
-		{
-			GPIO_array_write_all(&stat_led, 1);
-			USART_data_write(USART_NO_1, "on", 2);
-		}
+		GPIO_array_write_all(&err_led, 1);
+		USART_byte_write(USART_NO_1, '0');
+		USART_data_read_dma(USART_NO_1, buffer, data);
+		WAIT(DMA_channel_get_flag(DMA_CH5_USART1_RX, DMA_FLAG_FINISHED) == 0);
+		DMA_channel_clear_flags(DMA_CH5_USART1_RX);
+		buffer[data] = 0;//make sure there is a 0
+		GPIO_array_write_value(&leds, atoi(buffer));
 	}
 }
