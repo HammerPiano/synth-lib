@@ -208,8 +208,13 @@ bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t 
 	DMA_CH_PERIPHERALS_t dma_ch = DMA_CH_INVALID;
 	USART_TypeDef * usart = get_usart_ptr(usart_num);
 	DMA_address_t usart_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=false, .address=USART_get_data_register(usart_num)};
-	DMA_address_t memory_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=true, .address=data};
+	DMA_address_t memory_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=true, .address=(periph_ptr_t)data};
 	if (usart == NULL)
+	{
+		return false;
+	}
+	// Transmitter is off, cannot send any data
+	if ((usart->CR1 & USART_CONF_FLAG_TX_ON) == 0)
 	{
 		return false;
 	}
@@ -222,7 +227,7 @@ bool USART_data_write_dma(USART_NUMBER_t usart_num, const void * data, uint32_t 
 	usart->SR = 0;
 	// Uart requires that the DMA will be set first, before enabling it in the UART
 	DMA_start_channel(dma_ch, data_size, false);
-	usart->CR3 = USART_DMA_TX;
+	usart->CR3 |= USART_DMA_TX;
 	return true;
 }
 
@@ -264,6 +269,39 @@ int16_t USART_byte_read(USART_NUMBER_t usart_num, bool blocking)
 	return data;
 }
 
+bool USART_data_read_dma(USART_NUMBER_t usart_num, void * data, uint32_t data_size)
+{
+	DMA_CH_PERIPHERALS_t dma_ch = DMA_CH_INVALID;
+	USART_TypeDef * usart = get_usart_ptr(usart_num);
+	DMA_address_t usart_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=false, .address=USART_get_data_register(usart_num)};
+	DMA_address_t memory_side = {.access_size=DMA_ACCESS_8BIT, .increament_address=true, .address=data};
+	if (usart == NULL)
+	{
+		return false;
+	}
+
+	if (data_size == 0 || data == NULL)
+	{
+		return false;
+	}
+
+	// Receiver is off, cannot send any data
+	if ((usart->CR1 & USART_CONF_FLAG_RX_ON) == 0)
+	{
+		return false;
+	}
+	dma_ch = USART_to_dma_channel(usart_num, false);
+	if (DMA_init_channel(dma_ch, &usart_side, &memory_side, DMA_CH_PRIORITY_HIGH, DMA_DIRECTION_PERIPH_TO_MEM, DMA_INTERRUPT_COMPLETE) == false)
+	{
+		return false;
+	}
+	usart->SR = 0;
+	// Uart requires that the DMA will be set first, before enabling it in the UART
+	DMA_start_channel(dma_ch, data_size, false);
+	usart->CR3 |= USART_DMA_RX;
+	return true;
+}
+
 bool USART_get_flag(USART_NUMBER_t usart_num, uint32_t flag)
 {
 	USART_TypeDef * usart = get_usart_ptr(usart_num);
@@ -286,4 +324,9 @@ void USART_DMA_handler(USART_NUMBER_t usart_num, bool tx)
 	DMA_de_init_channel(USART_to_dma_channel(usart_num, tx));
 	// Clear the DMA flags
 	usart->CR3 &= ~(USART_DMA_TX | USART_DMA_RX);
+
+	if (tx)
+	{
+		DMA_channel_clear_flags(DMA_CH_DECODE(USART_to_dma_channel(usart_num, tx)));
+	}
 }
