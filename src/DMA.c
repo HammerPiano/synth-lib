@@ -16,7 +16,7 @@
 #define DMA_CCR_INTERRUPTS	(1)
 #define DMA_CCR_ENABLE		(0)
 
-#define DMA_ISR_FLAG_PER_CHANNEL (3)
+#define DMA_ISR_FLAG_PER_CHANNEL (4)
 
 typedef struct
 {
@@ -110,7 +110,7 @@ static DMA_CH_CONFIG_t * get_channel(DMA_CH_PERIPHERALS_t channel_config)
 		return NULL;
 	}
 	channel = s_DMA_CHANNELS + ch_num;
-	if (channel > DMA1_END) /* should never happen */
+	if (channel > (DMA_CH_CONFIG_t *)DMA1_END) /* should never happen */
 	{
 		return NULL;
 	}
@@ -142,8 +142,8 @@ bool DMA_init_channel(DMA_CH_PERIPHERALS_t	channel_config,
 	channel->CCR |= interrupt_mask;
 
 	/* initialize addresses */
-	channel->CMAR = memory->address;
-	channel->CPAR = peripheral->address;
+	channel->CMAR = (volatile uint32_t) memory->address;
+	channel->CPAR = (volatile uint32_t) peripheral->address;
 	// TODO make proper NVIC module implementation
 	if (interrupt_mask != 0)
 	{
@@ -222,6 +222,7 @@ bool DMA_set_software_trigger(DMA_CH_PERIPHERALS_t channel_config, bool software
 	{
 		channel->CCR &= ~(1 << DMA_CCR_SOFT_TRIG);
 	}
+	return true;
 }
 
 bool DMA_channel_get_flag(DMA_CH_PERIPHERALS_t channel_config, DMA_FLAG_t flag)
@@ -232,7 +233,7 @@ bool DMA_channel_get_flag(DMA_CH_PERIPHERALS_t channel_config, DMA_FLAG_t flag)
 	{
 		return false;
 	}
-	flag_mask = flag << (ch_num * DMA_ISR_FLAG_PER_CHANNEL + 1);
+	flag_mask = flag << (ch_num * DMA_ISR_FLAG_PER_CHANNEL);
 	return s_DMA1->ISR & flag_mask;
 }
 
@@ -266,7 +267,6 @@ void DMA_startup()
 }*/
 void DMA1_Channel2_IRQHandler()
 {
-	clear_dma_irq_flags(DMA_CH2);
 	switch (s_reserved_channels[1])
 	{
 		case DMA_CH2_USART3_TX:
@@ -278,7 +278,6 @@ void DMA1_Channel2_IRQHandler()
 }
 void DMA1_Channel3_IRQHandler()
 {
-	clear_dma_irq_flags(DMA_CH3);
 	switch (s_reserved_channels[2])
 	{
 		case DMA_CH3_USART3_RX:
@@ -290,7 +289,6 @@ void DMA1_Channel3_IRQHandler()
 }
 void DMA1_Channel4_IRQHandler()
 {
-	clear_dma_irq_flags(DMA_CH4);
 	switch (s_reserved_channels[3])
 	{
 		case DMA_CH4_USART1_TX:
@@ -302,7 +300,6 @@ void DMA1_Channel4_IRQHandler()
 }
 void DMA1_Channel5_IRQHandler()
 {
-	clear_dma_irq_flags(DMA_CH5);
 	switch (s_reserved_channels[4])
 	{
 		case DMA_CH5_USART1_RX:
@@ -314,7 +311,6 @@ void DMA1_Channel5_IRQHandler()
 }
 void DMA1_Channel6_IRQHandler()
 {
-	clear_dma_irq_flags(DMA_CH6);
 	switch (s_reserved_channels[5])
 	{
 		case DMA_CH6_USART2_RX:
@@ -326,7 +322,6 @@ void DMA1_Channel6_IRQHandler()
 }
 void DMA1_Channel7_IRQHandler()
 {
-	clear_dma_irq_flags(DMA_CH7);
 	switch (s_reserved_channels[6])
 	{
 		case DMA_CH7_USART2_TX:

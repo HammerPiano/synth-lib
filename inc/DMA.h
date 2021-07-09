@@ -116,7 +116,7 @@ typedef enum
 
 typedef struct
 {
-	void *	address;
+	periph_ptr_t	address;
 	uint8_t access_size : 2;
 	uint8_t increament_address : 1;
 } DMA_address_t, *pDMA_address_t;
